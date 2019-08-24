@@ -1,3 +1,0 @@
-auto bat0
-iface bat0 inet auto
-    pre-up /usr/sbin/batctl if add wlan0
