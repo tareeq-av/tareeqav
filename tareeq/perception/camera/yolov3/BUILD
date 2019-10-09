@@ -8,8 +8,17 @@
 # )
 
 cc_binary(
-    name = "yolov3_test",
-    srcs = ["main.cc", "darknet.cc", "darknet.h"],
+    name = "yolov3_single_image_test",
+    srcs = ["main_single_image.cc", "darknet.cc", "darknet.h"],
+    deps = [
+        "@opencv",
+        "@libtorch"
+    ]
+)
+
+cc_binary(
+    name = "yolov3_stream_test",
+    srcs = ["main_stream.cc", "darknet.cc", "darknet.h"],
     deps = [
         "@opencv",
         "@libtorch"
