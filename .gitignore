@@ -32,3 +32,6 @@
 *.app
 
 bazel-*
+
+#YOLOv3 weights
+yolov3.weights
