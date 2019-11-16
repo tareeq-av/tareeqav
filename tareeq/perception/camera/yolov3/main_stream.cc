@@ -54,7 +54,8 @@ int main(int argc, const char* argv[])
     // origin_image = imread(argv[1]);
 
     // Create a VideoCapture object and use camera to capture the video
-    VideoCapture cap(0); 
+    // VideoCapture cap(0);rtsp://192.168.1.161:8554/unicast 
+    VideoCapture cap("rtsp://192.168.1.161:8554/unicast");
     
     // Check if camera opened successfully
     if(!cap.isOpened())
@@ -68,7 +69,7 @@ int main(int argc, const char* argv[])
     int frame_height = cap.set(CAP_PROP_FRAME_HEIGHT, 480); 
     
     // Define the codec and create VideoWriter object.The output is stored in 'outcpp.avi' file. 
-    VideoWriter video("outcpp.avi",VideoWriter::fourcc('M','J','P','G'), 20, Size(640,480)); 
+    VideoWriter video("outcpp.avi",VideoWriter::fourcc('M','J','P','G'), 20, Size(640,480));
 
 
     while(1)
