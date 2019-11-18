@@ -22,7 +22,7 @@ CLS_MEAN_SIZE: [[1.52563191462, 1.62856739989, 3.88311640418]]
 # 1. config of rpn network
 RPN:
     ENABLED: True
-    FIXED: False
+    FIXED: True
 
     # config of input
     USE_INTENSITY: False
@@ -34,7 +34,7 @@ RPN:
     NUM_HEAD_BIN: 12
 
     # config of network structure
-    BACKBONE: perception.pointrcnn.lib.net.pointnet2_msg
+    BACKBONE: pointnet2_msg
     USE_BN: True
     NUM_POINTS: 16384
 
@@ -159,7 +159,7 @@ TRAIN:
     RPN_DISTANCE_BASED_PROPOSE: True
 
 TEST:
-    SPLIT: val
+    SPLIT: test
     RPN_PRE_NMS_TOP_N: 9000
     RPN_POST_NMS_TOP_N: 100
     RPN_NMS_THRESH: 0.8
