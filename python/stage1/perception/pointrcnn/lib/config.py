@@ -45,7 +45,7 @@ __C.RPN.LOC_BIN_SIZE = 0.5
 __C.RPN.NUM_HEAD_BIN = 12
 
 # config of network structure
-__C.RPN.BACKBONE = 'pointnet2_msg'
+__C.RPN.BACKBONE = 'perception.pointrcnn.lib.net.pointnet2_msg'
 
 __C.RPN.USE_BN = True
 __C.RPN.NUM_POINTS = 16384

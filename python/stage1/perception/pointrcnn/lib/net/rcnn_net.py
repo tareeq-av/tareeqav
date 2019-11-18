@@ -1,15 +1,15 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from pointnet2_lib.pointnet2.pointnet2_modules import PointnetSAModule
-from lib.rpn.proposal_target_layer import ProposalTargetLayer
-import pointnet2_lib.pointnet2.pytorch_utils as pt_utils
-import lib.utils.loss_utils as loss_utils
-from lib.config import cfg
 
-import lib.utils.kitti_utils as kitti_utils
-import lib.utils.roipool3d.roipool3d_utils as roipool3d_utils
+from perception.pointrcnn.lib.config import cfg
+from perception.pointrcnn.lib.utils import loss_utils
+from perception.pointrcnn.lib.utils import kitti_utils
+from perception.pointrcnn.lib.utils.roipool3d import roipool3d_utils
+from perception.pointrcnn.lib.rpn.proposal_target_layer import ProposalTargetLayer
 
+from perception.pointrcnn.pointnet2 import pytorch_utils as pt_utils
+from perception.pointrcnn.pointnet2.pointnet2_modules import PointnetSAModule
 
 class RCNNNet(nn.Module):
     def __init__(self, num_classes, input_channels=0, use_xyz=True):

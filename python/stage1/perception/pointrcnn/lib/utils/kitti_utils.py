@@ -1,9 +1,10 @@
-import numpy as np
-from scipy.spatial import Delaunay
-import scipy
-import lib.utils.object3d as object3d
 import torch
+import numpy as np
 
+import scipy
+from scipy.spatial import Delaunay
+
+from perception.pointrcnn.lib.utils import object3d
 
 def get_objects_from_label(label_file):
     with open(label_file, 'r') as f:

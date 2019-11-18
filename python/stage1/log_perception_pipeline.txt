@@ -1,0 +1,2 @@
+2019-11-18 15:28:42,627   INFO  ==> Loading from checkpoint '/home/sameh/Autonomous-Vehicles/tareeqav/python/stage1/PointRCNN.pth'
+2019-11-18 15:29:05,966   INFO  ==> Loading from checkpoint '/home/sameh/Autonomous-Vehicles/tareeqav/python/stage1/PointRCNN.pth'

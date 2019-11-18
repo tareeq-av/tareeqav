@@ -1,10 +1,10 @@
 import torch
 import torch.nn as nn
-from lib.utils.bbox_transform import decode_bbox_target
-from lib.config import cfg
-import lib.utils.kitti_utils as kitti_utils
-import lib.utils.iou3d.iou3d_utils as iou3d_utils
 
+from perception.pointrcnn.lib.config import cfg
+from perception.pointrcnn.lib.utils import kitti_utils
+from perception.pointrcnn.lib.utils.iou3d import iou3d_utils
+from perception.pointrcnn.lib.utils.bbox_transform import decode_bbox_target
 
 class ProposalLayer(nn.Module):
     def __init__(self, mode='TRAIN'):
