@@ -39,6 +39,8 @@ def init_pointrcnn(dataset, pointrcnn_filename, logger):
     model.load_state_dict(checkpoint['model_state'])
     total_keys = len(model.state_dict().keys())
 
+    return model
+
 
 def run():
     """

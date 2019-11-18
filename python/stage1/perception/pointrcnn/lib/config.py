@@ -34,7 +34,7 @@ __C.CLS_MEAN_SIZE = np.array([[1.52, 1.63, 3.88]], dtype=np.float32)
 # 1. config of rpn network
 __C.RPN = edict()
 __C.RPN.ENABLED = True
-__C.RPN.FIXED = False
+__C.RPN.FIXED = True
 
 __C.RPN.USE_INTENSITY = True
 
