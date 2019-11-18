@@ -1,8 +1,11 @@
 import os
 import logging
 
+import torch
+import numpy as np
+
 from sampledata import KittiRawData
-from pointrcnn.lib.net import PointRCNN
+from perception.pointrcnn.lib.net.point_rcnn import PointRCNN
 
 np.random.seed(1024)  # set the same seed
 
@@ -25,7 +28,7 @@ def load_sampledata(curr_dir):
 
 
 def init_pointrcnn(dataset, pointrcnn_filename, logger):
-    model = PointRCNN(num_classes=dataset.num_class, use_xyz=True, mode='TEST')
+    model = PointRCNN(num_classes=dataset.num_classes, use_xyz=True, mode='TEST')
     model.cuda()
     
     if not os.path.isfile(pointrcnn_filename):
@@ -51,9 +54,9 @@ def main():
     log_file = os.path.join(curr_dir, 'log_perception_pipeline.txt')
     
     logger = create_logger(log_file)
-    sampledata = load_sampledata()
+    sampledata = load_sampledata(curr_dir)
     
-    pointrcnn_model = init_pointrcnn(sampledata, pointrcnn_filename, logger)
+    pointrcnn_model = init_pointrcnn(sampledata, pointrcnn_model_file, logger)
 
 
 if __name__ == '__main__':

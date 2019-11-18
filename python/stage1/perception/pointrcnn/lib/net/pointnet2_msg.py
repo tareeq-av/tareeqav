@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
-from pointnet2_lib.pointnet2.pointnet2_modules import PointnetFPModule, PointnetSAModuleMSG
-from lib.config import cfg
 
+from perception.pointrcnn.lib.config import cfg
+from perception.pointrcnn.pointnet2.pointnet2_modules import PointnetFPModule, PointnetSAModuleMSG
 
 def get_model(input_channels=6, use_xyz=True):
     return Pointnet2MSG(input_channels=input_channels, use_xyz=use_xyz)

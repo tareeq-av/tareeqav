@@ -1,12 +1,13 @@
-import torch.nn as nn
-import torch.nn.functional as F
-import numpy as np
-from lib.rpn.proposal_layer import ProposalLayer
-import pointnet2_lib.pointnet2.pytorch_utils as pt_utils
-import lib.utils.loss_utils as loss_utils
-from lib.config import cfg
 import importlib
 
+import numpy as np
+import torch.nn as nn
+import torch.nn.functional as F
+
+from perception.pointrcnn.lib.config import cfg
+from perception.pointrcnn.lib.rpn.proposal_layer import ProposalLayer
+from perception.pointrcnn.lib.utils import loss_utils
+from perception.pointrcnn.pointnet2 import pytorch_utils as pt_utils
 
 class RPN(nn.Module):
     def __init__(self, use_xyz=True, mode='TRAIN'):

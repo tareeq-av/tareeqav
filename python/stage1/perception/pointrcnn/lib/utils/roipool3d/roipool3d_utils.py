@@ -1,8 +1,8 @@
 import torch
-import roipool3d_cuda
 import numpy as np
-import lib.utils.kitti_utils as kitti_utils
 
+import roipool3d_cuda
+from perception.pointrcnn.lib.utils import kitti_utils
 
 def roipool3d_gpu(pts, pts_feature, boxes3d, pool_extra_width, sampled_pt_num=512):
     """

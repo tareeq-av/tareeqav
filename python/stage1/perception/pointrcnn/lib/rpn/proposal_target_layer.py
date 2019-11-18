@@ -1,11 +1,11 @@
 import torch
 import torch.nn as nn
 import numpy as np
-from lib.config import cfg
-import lib.utils.kitti_utils as kitti_utils
-import lib.utils.roipool3d.roipool3d_utils as roipool3d_utils
-import lib.utils.iou3d.iou3d_utils as iou3d_utils
 
+from perception.pointrcnn.lib.config import cfg
+from perception.pointrcnn.lib.utils import kitti_utils
+from perception.pointrcnn.lib.utils.iou3d import iou3d_utils
+from perception.pointrcnn.lib.utils.roipool3d import roipool3d_utils
 
 class ProposalTargetLayer(nn.Module):
     def __init__(self):

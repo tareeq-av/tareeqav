@@ -1,8 +1,9 @@
 import torch
 import torch.nn as nn
-from lib.net.rpn import RPN
-from lib.net.rcnn_net import RCNNNet
-from lib.config import cfg
+
+from .rpn import RPN
+from .rcnn_net import RCNNNet
+from perception.pointrcnn.lib.config import cfg
 
 
 class PointRCNN(nn.Module):
