@@ -8,3 +8,4 @@
 2019-11-18 16:38:31,376   INFO  ==> Loading from checkpoint '/home/sameh/Autonomous-Vehicles/tareeqav/python/stage1/PointRCNN.pth'
 2019-11-18 16:42:10,531   INFO  ==> Loading from checkpoint '/home/sameh/Autonomous-Vehicles/tareeqav/python/stage1/PointRCNN.pth'
 2019-11-18 16:43:00,689   INFO  ==> Loading from checkpoint '/home/sameh/Autonomous-Vehicles/tareeqav/python/stage1/PointRCNN.pth'
+2019-11-18 22:53:00,448   INFO  ==> Loading from checkpoint '/home/sameh/Autonomous-Vehicles/tareeqav/python/stage1/PointRCNN.pth'
