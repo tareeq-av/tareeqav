@@ -22,8 +22,8 @@ colors = {
 }
 
 
-def plot_3d_bbox(img, label_info, cam_to_img, is_gt=False):
-    print('current label info: ', label_info)
+def plot_3d_bbox(img, label_info, cam_to_img, is_gt=True):
+    # print('current label info: ', label_info)
     alpha = label_info['alpha']
     # theta_ray = label_info['theta_ray']
     box_3d = []
@@ -70,7 +70,7 @@ def plot_3d_bbox(img, label_info, cam_to_img, is_gt=False):
 
     return img
 
-
+    
 def draw_3d_bbox(detections, image, camp_to_img):
     for l in detections:
         label_info = {}
@@ -84,8 +84,8 @@ def draw_3d_bbox(detections, image, camp_to_img):
         label_info['box'] = np.asarray(l[4: 7], dtype=float)
         
         image = plot_3d_bbox(image, label_info, camp_to_img)
-    cv2.imshow('PointNet++ Detections', image)
-    cv2.waitKey(0)
+    return image
+
 
 def create_logger(log_file):
     log_format = '%(asctime)s  %(levelname)5s  %(message)s'
@@ -99,9 +99,9 @@ def create_logger(log_file):
 
 def load_sampledata(curr_dir):
     
-    data_path = os.path.join(curr_dir, '../data_samples/kitti')
-    # data_path = '/home/sameh/Autonomous-Vehicles/Datasets/Kitti-Raw/kitti_data/2011_09_26'
-    scene_name = "2011_09_26_drive_0001"
+    # data_path = os.path.join(curr_dir, '../data_samples/kitti')
+    data_path = '/home/sameh/Autonomous-Vehicles/Datasets/Kitti-Raw/kitti_data/2011_09_26'
+    scene_name = "2011_09_26_drive_0009_sync"
     
     return KittiRawData(data_path, scene_name)
 
@@ -137,7 +137,6 @@ def generate_detections(calib, bbox3d, scores, img_shape):
     box_valid_mask = np.logical_and(img_boxes_w < img_shape[1] * 0.8, img_boxes_h < img_shape[0] * 0.8)
 
     detections = []
-    print('>>>>>>>>>>>>>>>>>> bbox3d.shape[0]', bbox3d.shape[0])
     for k in range(bbox3d.shape[0]):
         if box_valid_mask[k] == 0:
             continue
@@ -149,17 +148,11 @@ def generate_detections(calib, bbox3d, scores, img_shape):
                bbox3d[k, 3], bbox3d[k, 4], bbox3d[k, 5], bbox3d[k, 0], bbox3d[k, 1], bbox3d[k, 2],
                bbox3d[k, 6], scores[k])
         detections.append(detection)
-        print('>>>>>>>>>>>>>>>>>>>>>>> detection')
-        print(detection)
         
         # print('%s -1 -1 %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f' %
         #       (cfg.CLASSES, alpha, img_boxes[k, 0], img_boxes[k, 1], img_boxes[k, 2], img_boxes[k, 3],
         #        bbox3d[k, 3], bbox3d[k, 4], bbox3d[k, 5], bbox3d[k, 0], bbox3d[k, 1], bbox3d[k, 2],
         #        bbox3d[k, 6], scores[k]), file=f)
-    
-    print('>>>>>>>>>>>>>>>>>>>>>>>')
-    print('len(detections)', len(detections))
-    print('>>>>>>>>>>>>>>>>>>>>>>>')
     return detections
 
 
@@ -255,6 +248,7 @@ def main():
     """
     """
     curr_dir = os.path.dirname(os.path.realpath(__file__))
+    output_dir = os.path.join(curr_dir, 'output')
     pointrcnn_model_file = os.path.join(curr_dir, 'PointRCNN.pth')
     log_file = os.path.join(curr_dir, 'log_perception_pipeline.txt')
     
@@ -262,12 +256,17 @@ def main():
     sampledata = load_sampledata(curr_dir)
     
     pointrcnn_model = init_pointrcnn(sampledata, pointrcnn_model_file, logger)
+    print('starting...')
     for i in range(sampledata.num_samples):
         dataset_item = sampledata[i]
         detections = run(pointrcnn_model, dataset_item, sampledata.calib)
-
+        
         # draw 3d bounding boxes on input image
-        draw_3d_bbox(detections, dataset_item['img'], sampledata.calib.P2)
+        image = draw_3d_bbox(detections, dataset_item['img'], sampledata.calib.P2)
+        cv2.imwrite(output_dir+'/'+str(i).zfill(9)+'.png', image)
+        if i % 100 == 0:
+            print('finished', i, 'samples')
+    print('done')
 
 
 if __name__ == '__main__':
