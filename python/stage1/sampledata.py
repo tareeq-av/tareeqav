@@ -121,6 +121,7 @@ class Calibration(object):
 
 class KittiRawData:
 
+    npoints            = 16384
     left_camera        = 'image_02/data'
     lidar              = 'velodyne_points/data'
     classes            = ('Background', 'Car')
@@ -172,59 +173,33 @@ class KittiRawData:
 
         calib = {}
 
-        # with open('{}/calib_cam_to_cam.txt'.format(self.data_path)) as f:
-        #     for line in f:
-        #         for line in f.readlines()[1:]:
-        #             key_str, data = line.split(':')
-        #             if key_str in calib_cam_to_cam:
-        #                 calib[calib_cam_to_cam[key_str]] = np.array(data.strip().split(' '), dtype=np.float32)
+        with open('{}/calib_cam_to_cam.txt'.format(self.data_path)) as f:
+            for line in f:
+                for line in f.readlines()[1:]:
+                    key_str, data = line.split(':')
+                    if key_str in calib_cam_to_cam:
+                        calib[calib_cam_to_cam[key_str]] = np.array(data.strip().split(' '), dtype=np.float32)
         
-        # with open('{}/calib_velo_to_cam.txt'.format(self.data_path)) as f:
-        #     data_str = ""
-        #     for line in f.readlines()[1:]:
-        #         if line:
-        #             key_str, data = line.split(':')
-        #             if key_str == 'R'or key_str == 'T':
-        #                 data_str += data
+        with open('{}/calib_velo_to_cam.txt'.format(self.data_path)) as f:
+            r,t = [],[]
+            for line in f.readlines()[1:]:
+                if line and 'T:' in line:
+                    t = line.split(':')[1].strip().split(' ')
+                elif line and 'R:' in line:
+                    r = line.split(':')[1].strip().split(' ')
 
-        #     calib['Tr_velo_to_cam'] = np.array(data_str.strip().split(' '), dtype=np.float32)
-
-        # print('>>>>>>>>>>>>>>>>>>>>>>>>')
-        # print('>>>>>>>>>>>>>>>>>>>>>>>>')
-        # print('>>>>>>>>>>>>>>>>>>>>>>>>')
-        # print({
-        #     'P2'          : calib['P2'].reshape(3, 4),
-        #     'P3'          : calib['P3'].reshape(3, 4),
-        #     'R0'          : calib['R0'].reshape(3, 3),
-        #     'Tr_velo2cam' : calib['Tr_velo_to_cam'].reshape(3, 4)
-        # })
-        # print('>>>>>>>>>>>>>>>>>>>>>>>>')
-        # print('>>>>>>>>>>>>>>>>>>>>>>>>')
-
+            r1,r2,r3 = r[0:3],r[3:6],r[6:]
+            
+            calib['Tr_velo_to_cam'] = np.array(r1+[t[0]]+r2+[t[1]]+r3+[t[2]], dtype=np.float32)
         
-        # return {
-        #     'P2'          : calib['P2'].reshape(3, 4),
-        #     'P3'          : calib['P3'].reshape(3, 4),
-        #     'R0'          : calib['R0'].reshape(3, 3),
-        #     'Tr_velo2cam' : calib['Tr_velo_to_cam'].reshape(3, 4)
-        # }
+        return {
+            'P2'          : calib['P2'].reshape(3, 4),
+            'P3'          : calib['P3'].reshape(3, 4),
+            'R0'          : calib['R0'].reshape(3, 3),
+            'Tr_velo2cam' : calib['Tr_velo_to_cam'].reshape(3, 4)
+        }
 
-        with open('/home/sameh/Autonomous-Vehicles/PointRCNN/data/KITTI/object/testing/calib/000005.txt') as f:
-            lines = f.readlines()
-
-            obj = lines[2].strip().split(' ')[1:]
-            P2 = np.array(obj, dtype=np.float32)
-            obj = lines[3].strip().split(' ')[1:]
-            P3 = np.array(obj, dtype=np.float32)
-            obj = lines[4].strip().split(' ')[1:]
-            R0 = np.array(obj, dtype=np.float32)
-            obj = lines[5].strip().split(' ')[1:]
-            Tr_velo_to_cam = np.array(obj, dtype=np.float32)
-
-            return {'P2': P2.reshape(3, 4),
-                    'P3': P3.reshape(3, 4),
-                    'R0': R0.reshape(3, 3),
-                    'Tr_velo2cam': Tr_velo_to_cam.reshape(3, 4)}
+       
     
     @staticmethod
     def get_valid_flag(pts_rect, pts_img, pts_rect_depth, img_shape):
@@ -266,7 +241,7 @@ class KittiRawData:
         )
         assert os.path.exists(img_file)
         img = cv2.imread(img_file)  # (H, W, 3) BGR mode
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         return img
     
     def get_lidar(self, image_idx):
@@ -274,7 +249,6 @@ class KittiRawData:
             '{}/{}/{}'.format(self.data_path, self.scene_name, self.lidar),
             image_idx+'.bin'
         )
-        print('...........', lidar_file)
         assert os.path.exists(lidar_file)
         return np.fromfile(lidar_file, dtype=np.float32).reshape(-1, 4)
     
@@ -292,13 +266,31 @@ class KittiRawData:
         pts_img, pts_rect_depth = self.calib.rect_to_img(pts_rect)
         pts_valid_flag = self.get_valid_flag(pts_rect, pts_img, pts_rect_depth, img_shape)
 
-        print('>>>>>>>>>>>>>>>', pts_valid_flag)
-
         pts_rect = pts_rect[pts_valid_flag][:, 0:3]
         pts_intensity = pts_intensity[pts_valid_flag]
 
-        ret_pts_rect = pts_rect
-        ret_pts_intensity = pts_intensity - 0.5
+        if self.npoints < len(pts_rect):
+            pts_depth = pts_rect[:, 2]
+            pts_near_flag = pts_depth < 40.0
+            far_idxs_choice = np.where(pts_near_flag == 0)[0]
+            near_idxs = np.where(pts_near_flag == 1)[0]
+            near_idxs_choice = np.random.choice(near_idxs, self.npoints - len(far_idxs_choice), replace=False)
+
+            choice = np.concatenate((near_idxs_choice, far_idxs_choice), axis=0) \
+                if len(far_idxs_choice) > 0 else near_idxs_choice
+            np.random.shuffle(choice)
+        else:
+            choice = np.arange(0, len(pts_rect), dtype=np.int32)
+            if self.npoints > len(pts_rect):
+                extra_choice = np.random.choice(choice, self.npoints - len(pts_rect), replace=False)
+                choice = np.concatenate((choice, extra_choice), axis=0)
+            np.random.shuffle(choice)
+
+        ret_pts_rect = pts_rect[choice, :]
+        ret_pts_intensity = pts_intensity[choice] - 0.5  # translate intensity to [-0.5, 0.5]
+
+        # ret_pts_rect = pts_rect
+        # ret_pts_intensity = pts_intensity - 0.5
 
         pts_features = [ret_pts_intensity.reshape(-1, 1)]
         ret_pts_features = np.concatenate(pts_features, axis=1) if pts_features.__len__() > 1 else pts_features[0]
@@ -319,7 +311,7 @@ class KittiRawData:
 if __name__  == '__main__':
     cur_dir = os.path.dirname(os.path.realpath(__file__))
     data_path = os.path.join(cur_dir, '../data_samples/kitti')
-    scene_name = "2011_09_26_drive_0001"
+    scene_name = "2011_09_26_drive_0009_sync"
     
     data = KittiRawData(data_path, scene_name)
     print(data[0])
