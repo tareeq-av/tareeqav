@@ -9,18 +9,18 @@ cfg = __C
 __C.TAG = 'default'
 __C.CLASSES = 'Car'
 
-__C.INCLUDE_SIMILAR_TYPE = False
+__C.INCLUDE_SIMILAR_TYPE = True
 
 # config of augmentation
 __C.AUG_DATA = True
 __C.AUG_METHOD_LIST = ['rotation', 'scaling', 'flip']
-__C.AUG_METHOD_PROB = [0.5, 0.5, 0.5]
+__C.AUG_METHOD_PROB = [1.0, 1.0, 0.5]
 __C.AUG_ROT_RANGE = 18
 
-__C.GT_AUG_ENABLED = False
+__C.GT_AUG_ENABLED = True
 __C.GT_EXTRA_NUM = 15
-__C.GT_AUG_RAND_NUM = False
-__C.GT_AUG_APPLY_PROB = 0.75
+__C.GT_AUG_RAND_NUM = True
+__C.GT_AUG_APPLY_PROB = 1.0
 __C.GT_AUG_HARD_RATIO = 0.6
 
 __C.PC_REDUCE_BY_RANGE = True
@@ -28,7 +28,7 @@ __C.PC_AREA_SCOPE = np.array([[-40, 40],
                               [-1,   3],
                               [0, 70.4]])  # x, y, z scope in rect camera coords
 
-__C.CLS_MEAN_SIZE = np.array([[1.52, 1.63, 3.88]], dtype=np.float32)
+__C.CLS_MEAN_SIZE = np.array([[1.52563191462, 1.62856739989, 3.88311640418]], dtype=np.float32)
 
 
 # 1. config of rpn network
@@ -36,7 +36,7 @@ __C.RPN = edict()
 __C.RPN.ENABLED = True
 __C.RPN.FIXED = True
 
-__C.RPN.USE_INTENSITY = True
+__C.RPN.USE_INTENSITY = False
 
 # config of bin-based loss
 __C.RPN.LOC_XZ_FINE = False
@@ -64,7 +64,7 @@ __C.RPN.REG_FC = [128]
 __C.RPN.DP_RATIO = 0.5
 
 # config of training
-__C.RPN.LOSS_CLS = 'DiceLoss'
+__C.RPN.LOSS_CLS = 'SigmoidFocalLoss'
 __C.RPN.FG_WEIGHT = 15
 __C.RPN.FOCAL_ALPHA = [0.25, 0.75]
 __C.RPN.FOCAL_GAMMA = 2.0
@@ -78,7 +78,7 @@ __C.RPN.SCORE_THRESH = 0.3
 
 # 2. config of rcnn network
 __C.RCNN = edict()
-__C.RCNN.ENABLED = False
+__C.RCNN.ENABLED = True
 
 # config of input
 __C.RCNN.USE_RPN_FEATURES = True
@@ -87,7 +87,7 @@ __C.RCNN.MASK_TYPE = 'seg'
 __C.RCNN.USE_INTENSITY = False
 __C.RCNN.USE_DEPTH = True
 __C.RCNN.USE_SEG_SCORE = False
-__C.RCNN.ROI_SAMPLE_JIT = False
+__C.RCNN.ROI_SAMPLE_JIT = True
 __C.RCNN.ROI_FG_AUG_TIMES = 10
 
 __C.RCNN.REG_AUG_METHOD = 'multiple'  # multiple, single, normal
@@ -131,7 +131,7 @@ __C.RCNN.CLS_BG_THRESH_LO = 0.05
 __C.RCNN.REG_FG_THRESH = 0.55
 __C.RCNN.FG_RATIO = 0.5
 __C.RCNN.ROI_PER_IMAGE = 64
-__C.RCNN.HARD_BG_RATIO = 0.6
+__C.RCNN.HARD_BG_RATIO = 0.8
 
 # config of testing
 __C.RCNN.SCORE_THRESH = 0.3
@@ -146,18 +146,18 @@ __C.TRAIN.VAL_SPLIT = 'smallval'
 __C.TRAIN.LR = 0.002
 __C.TRAIN.LR_CLIP = 0.00001
 __C.TRAIN.LR_DECAY = 0.5
-__C.TRAIN.DECAY_STEP_LIST = [50, 100, 150, 200, 250, 300]
-__C.TRAIN.LR_WARMUP = False
+__C.TRAIN.DECAY_STEP_LIST =  [100, 150, 180, 200]
+__C.TRAIN.LR_WARMUP = True
 __C.TRAIN.WARMUP_MIN = 0.0002
-__C.TRAIN.WARMUP_EPOCH = 5
+__C.TRAIN.WARMUP_EPOCH = 1
 
-__C.TRAIN.BN_MOMENTUM = 0.9
+__C.TRAIN.BN_MOMENTUM = 0.1
 __C.TRAIN.BN_DECAY = 0.5
 __C.TRAIN.BNM_CLIP = 0.01
-__C.TRAIN.BN_DECAY_STEP_LIST = [50, 100, 150, 200, 250, 300]
+__C.TRAIN.BN_DECAY_STEP_LIST = [1000]
 
-__C.TRAIN.OPTIMIZER = 'adam'
-__C.TRAIN.WEIGHT_DECAY = 0.0  # "L2 regularization coeff [default: 0.0]"
+__C.TRAIN.OPTIMIZER = 'adam_onecycle'
+__C.TRAIN.WEIGHT_DECAY = 0.001  # "L2 regularization coeff [default: 0.0]"
 __C.TRAIN.MOMENTUM = 0.9
 
 __C.TRAIN.MOMS = [0.95, 0.85]
@@ -166,17 +166,17 @@ __C.TRAIN.PCT_START = 0.4
 
 __C.TRAIN.GRAD_NORM_CLIP = 1.0
 
-__C.TRAIN.RPN_PRE_NMS_TOP_N = 12000
-__C.TRAIN.RPN_POST_NMS_TOP_N = 2048
+__C.TRAIN.RPN_PRE_NMS_TOP_N = 9000
+__C.TRAIN.RPN_POST_NMS_TOP_N = 512
 __C.TRAIN.RPN_NMS_THRESH = 0.85
 __C.TRAIN.RPN_DISTANCE_BASED_PROPOSE = True
 
 
 __C.TEST = edict()
-__C.TEST.SPLIT = 'val'
+__C.TEST.SPLIT = 'test'
 __C.TEST.RPN_PRE_NMS_TOP_N = 9000
-__C.TEST.RPN_POST_NMS_TOP_N = 300
-__C.TEST.RPN_NMS_THRESH = 0.7
+__C.TEST.RPN_POST_NMS_TOP_N = 100
+__C.TEST.RPN_NMS_THRESH = 0.8
 __C.TEST.RPN_DISTANCE_BASED_PROPOSE = True
 
 
