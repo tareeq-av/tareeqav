@@ -59,6 +59,7 @@ def main():
     sampledata = load_sampledata(curr_dir)
     
     pointrcnn_model = init_pointrcnn(sampledata, pointrcnn_model_file, logger)
+    
 
 
 if __name__ == '__main__':

@@ -33,6 +33,7 @@ class PointRCNN(nn.Module):
                     self.rpn.eval()
                 rpn_output = self.rpn(input_data)
                 output.update(rpn_output)
+                
 
             # rcnn inference
             if cfg.RCNN.ENABLED:

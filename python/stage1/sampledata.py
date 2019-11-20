@@ -172,29 +172,59 @@ class KittiRawData:
 
         calib = {}
 
-        with open('{}/calib_cam_to_cam.txt'.format(self.data_path)) as f:
-            for line in f:
-                for line in f.readlines()[1:]:
-                    key_str, data = line.split(':')
-                    if key_str in calib_cam_to_cam:
-                        calib[calib_cam_to_cam[key_str]] = np.array(data.strip().split(' '), dtype=np.float32)
+        # with open('{}/calib_cam_to_cam.txt'.format(self.data_path)) as f:
+        #     for line in f:
+        #         for line in f.readlines()[1:]:
+        #             key_str, data = line.split(':')
+        #             if key_str in calib_cam_to_cam:
+        #                 calib[calib_cam_to_cam[key_str]] = np.array(data.strip().split(' '), dtype=np.float32)
         
-        with open('{}/calib_velo_to_cam.txt'.format(self.data_path)) as f:
-            data_str = ""
-            for line in f.readlines()[1:]:
-                if line:
-                    key_str, data = line.split(':')
-                    if key_str == 'R'or key_str == 'T':
-                        data_str += data
+        # with open('{}/calib_velo_to_cam.txt'.format(self.data_path)) as f:
+        #     data_str = ""
+        #     for line in f.readlines()[1:]:
+        #         if line:
+        #             key_str, data = line.split(':')
+        #             if key_str == 'R'or key_str == 'T':
+        #                 data_str += data
 
-            calib['Tr_velo_to_cam'] = np.array(data_str.strip().split(' '), dtype=np.float32)
+        #     calib['Tr_velo_to_cam'] = np.array(data_str.strip().split(' '), dtype=np.float32)
+
+        # print('>>>>>>>>>>>>>>>>>>>>>>>>')
+        # print('>>>>>>>>>>>>>>>>>>>>>>>>')
+        # print('>>>>>>>>>>>>>>>>>>>>>>>>')
+        # print({
+        #     'P2'          : calib['P2'].reshape(3, 4),
+        #     'P3'          : calib['P3'].reshape(3, 4),
+        #     'R0'          : calib['R0'].reshape(3, 3),
+        #     'Tr_velo2cam' : calib['Tr_velo_to_cam'].reshape(3, 4)
+        # })
+        # print('>>>>>>>>>>>>>>>>>>>>>>>>')
+        # print('>>>>>>>>>>>>>>>>>>>>>>>>')
+
         
-        return {
-            'P2'          : calib['P2'].reshape(3, 4),
-            'P3'          : calib['P3'].reshape(3, 4),
-            'R0'          : calib['R0'].reshape(3, 3),
-            'Tr_velo2cam' : calib['Tr_velo_to_cam'].reshape(3, 4)
-        }
+        # return {
+        #     'P2'          : calib['P2'].reshape(3, 4),
+        #     'P3'          : calib['P3'].reshape(3, 4),
+        #     'R0'          : calib['R0'].reshape(3, 3),
+        #     'Tr_velo2cam' : calib['Tr_velo_to_cam'].reshape(3, 4)
+        # }
+
+        with open('/home/sameh/Autonomous-Vehicles/PointRCNN/data/KITTI/object/testing/calib/000005.txt') as f:
+            lines = f.readlines()
+
+            obj = lines[2].strip().split(' ')[1:]
+            P2 = np.array(obj, dtype=np.float32)
+            obj = lines[3].strip().split(' ')[1:]
+            P3 = np.array(obj, dtype=np.float32)
+            obj = lines[4].strip().split(' ')[1:]
+            R0 = np.array(obj, dtype=np.float32)
+            obj = lines[5].strip().split(' ')[1:]
+            Tr_velo_to_cam = np.array(obj, dtype=np.float32)
+
+            return {'P2': P2.reshape(3, 4),
+                    'P3': P3.reshape(3, 4),
+                    'R0': R0.reshape(3, 3),
+                    'Tr_velo2cam': Tr_velo_to_cam.reshape(3, 4)}
     
     @staticmethod
     def get_valid_flag(pts_rect, pts_img, pts_rect_depth, img_shape):
@@ -214,11 +244,12 @@ class KittiRawData:
 
         ## HARD CODED FOR NOW ##
         # x_range, y_range, z_range = cfg.PC_AREA_SCOPE
-        PC_AREA_SCOPE =  [[-40, 40], [-1,   3], [0, 70.4]]  # x, y, z scope in rect camera coords
+        PC_AREA_SCOPE =  np.array([[-40, 40],
+                              [-1,   3],
+                              [0, 70.4]])  # x, y, z scope in rect camera coords
+        
         x_range, y_range, z_range = PC_AREA_SCOPE
-
         pts_x, pts_y, pts_z = pts_rect[:, 0], pts_rect[:, 1], pts_rect[:, 2]
-
         range_flag = (pts_x >= x_range[0]) & (pts_x <= x_range[1]) \
                         & (pts_y >= y_range[0]) & (pts_y <= y_range[1]) \
                         & (pts_z >= z_range[0]) & (pts_z <= z_range[1])
@@ -256,36 +287,29 @@ class KittiRawData:
 
         # get valid point (projected points should be in image)
         pts_rect = self.calib.lidar_to_rect(pts_lidar[:, 0:3])
-        
         pts_intensity = pts_lidar[:, 3]
 
         pts_img, pts_rect_depth = self.calib.rect_to_img(pts_rect)
+        pts_valid_flag = self.get_valid_flag(pts_rect, pts_img, pts_rect_depth, img_shape)
 
-        # pts_valid_flag = self.get_valid_flag(pts_rect, pts_img, pts_rect_depth, img_shape)
-        # pts_rect = pts_rect[pts_valid_flag][:, 0:3]
-        # print(pts_img,">>>>>>>>>>>>>>>>>>>>>>>")
-        # pts_intensity = pts_intensity[pts_valid_flag]
+        print('>>>>>>>>>>>>>>>', pts_valid_flag)
 
+        pts_rect = pts_rect[pts_valid_flag][:, 0:3]
+        pts_intensity = pts_intensity[pts_valid_flag]
+
+        ret_pts_rect = pts_rect
         ret_pts_intensity = pts_intensity - 0.5
+
         pts_features = [ret_pts_intensity.reshape(-1, 1)]
         ret_pts_features = np.concatenate(pts_features, axis=1) if pts_features.__len__() > 1 else pts_features[0]
 
-        ## THIS MIGHT BE REQUIRED ##
-        ###########################
-
-        # data augmentation
-        # aug_pts_rect = ret_pts_rect.copy()
-        # aug_gt_boxes3d = gt_boxes3d.copy()
-        # if cfg.AUG_DATA and self.mode == 'TRAIN':
-        #     aug_pts_rect, aug_gt_boxes3d, aug_method = self.data_augmentation(aug_pts_rect, aug_gt_boxes3d, gt_alpha,
-        #                                                                       sample_id)
-        #     sample_info['aug_method'] = aug_method
+        pts_input = ret_pts_rect
 
         # prepare input
         sample_info = {}
         sample_info['img'] = img
-        sample_info['pts_input'] = pts_rect
-        sample_info['pts_rect'] = pts_rect
+        sample_info['pts_input'] = pts_input
+        sample_info['pts_rect'] = ret_pts_rect
         sample_info['pts_features'] = ret_pts_features
         # sample_info['rpn_cls_label'] = rpn_cls_label
         # sample_info['rpn_reg_label'] = rpn_reg_label
@@ -298,4 +322,4 @@ if __name__  == '__main__':
     scene_name = "2011_09_26_drive_0001"
     
     data = KittiRawData(data_path, scene_name)
-    print(data[0].keys())
+    print(data[0])
