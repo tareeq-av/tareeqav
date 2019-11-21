@@ -4,6 +4,7 @@ import logging
 import cv2
 import torch
 import numpy as np
+# from skvideo.io import VideoWriter
 
 from perception.pointrcnn.lib.config import cfg
 from perception.pointrcnn.lib.utils import kitti_utils
@@ -97,13 +98,14 @@ def create_logger(log_file):
     return logging.getLogger(__name__)
 
 
-def load_sampledata(curr_dir):
+def load_sampledata(scene_base_dir, scene_name):
     
     # data_path = os.path.join(curr_dir, '../data_samples/kitti')
-    data_path = '/home/sameh/Autonomous-Vehicles/Datasets/Kitti-Raw/kitti_data/2011_09_26'
-    scene_name = "2011_09_26_drive_0009_sync"
+    # base_dir = '/home/sameh/Autonomous-Vehicles/Datasets/Kitti-Raw/kitti_data'
+    # data_path = os.path.join(base_dir, scene_date)
+    # scene_name = "2011_09_26_drive_0009_sync"
     
-    return KittiRawData(data_path, scene_name)
+    return KittiRawData(scene_base_dir, scene_name)
 
 
 def init_pointrcnn(dataset, pointrcnn_filename, logger):
@@ -244,18 +246,30 @@ def run(model, dataset_item, calib):
     return generate_detections(calib, pred_boxes3d_selected, scores_selected, image_shape)
 
 
-def main():
+def main(scene_base_dir, scene_name):
     """
     """
     curr_dir = os.path.dirname(os.path.realpath(__file__))
+    # output_dir = os.path.join(curr_dir, 'output/{}'.format(scene_name))
     output_dir = os.path.join(curr_dir, 'output')
+
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+
     pointrcnn_model_file = os.path.join(curr_dir, 'PointRCNN.pth')
     log_file = os.path.join(curr_dir, 'log_perception_pipeline.txt')
     
     logger = create_logger(log_file)
-    sampledata = load_sampledata(curr_dir)
+    sampledata = load_sampledata(scene_base_dir, scene_name)
     
     pointrcnn_model = init_pointrcnn(sampledata, pointrcnn_model_file, logger)
+
+    fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+    shape = sampledata[0]['img'].shape
+    out = cv2.VideoWriter('{}/{}.avi'.format(output_dir,scene_name), fourcc, 15, (shape[1], shape[0]), True)
+
+    # writer = VideoWriter(filename, frameSize=(w, h))
+
     print('starting...')
     for i in range(sampledata.num_samples):
         dataset_item = sampledata[i]
@@ -263,11 +277,32 @@ def main():
         
         # draw 3d bounding boxes on input image
         image = draw_3d_bbox(detections, dataset_item['img'], sampledata.calib.P2)
-        cv2.imwrite(output_dir+'/'+str(i).zfill(9)+'.png', image)
+        out.write(image)
+        
         if i % 100 == 0:
             print('finished', i, 'samples')
+
     print('done')
+    out.release()
+
 
 
 if __name__ == '__main__':
-    main()
+    base_dir = '/home/sameh/Autonomous-Vehicles/Datasets/Kitti-Raw/kitti_data'
+    scene_dates = [
+        #'2011_09_26',
+        # '2011_09_28' ,
+        '2011_09_29', 
+        '2011_09_30',
+        '2011_10_03'
+    ]
+
+    for scene_date in scene_dates:
+        print('processing scenes from', scene_date)
+        scene_dir = os.path.join(base_dir, scene_date)
+        scene_names = os.listdir(scene_dir)
+        for scene_name in scene_names:
+            scene_path = os.path.join(scene_dir, scene_name)
+            if os.path.isdir(scene_path):
+                main(scene_dir, scene_name)
+
