@@ -73,7 +73,7 @@ __C.RPN.LOSS_WEIGHT = [1.0, 1.0]
 __C.RPN.NMS_TYPE = 'normal'  # normal, rotate
 
 # config of testing
-__C.RPN.SCORE_THRESH = 0.3
+__C.RPN.SCORE_THRESH = 0.9
 
 
 # 2. config of rcnn network
@@ -134,8 +134,8 @@ __C.RCNN.ROI_PER_IMAGE = 64
 __C.RCNN.HARD_BG_RATIO = 0.8
 
 # config of testing
-__C.RCNN.SCORE_THRESH = 0.3
-__C.RCNN.NMS_THRESH = 0.1
+__C.RCNN.SCORE_THRESH = 0.9
+__C.RCNN.NMS_THRESH = 0.3
 
 
 # general training config
@@ -176,7 +176,7 @@ __C.TEST = edict()
 __C.TEST.SPLIT = 'test'
 __C.TEST.RPN_PRE_NMS_TOP_N = 9000
 __C.TEST.RPN_POST_NMS_TOP_N = 100
-__C.TEST.RPN_NMS_THRESH = 0.8
+__C.TEST.RPN_NMS_THRESH = 1.8
 __C.TEST.RPN_DISTANCE_BASED_PROPOSE = True
 
 

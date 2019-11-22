@@ -4,7 +4,6 @@ import logging
 import cv2
 import torch
 import numpy as np
-# from skvideo.io import VideoWriter
 
 from perception.pointrcnn.lib.config import cfg
 from perception.pointrcnn.lib.utils import kitti_utils
@@ -17,9 +16,10 @@ from sampledata import KittiRawData
 np.random.seed(1024)  # set the same seed
 
 colors = {
+    'yellow': (0,255,255),
     'green': (0, 255, 0),
     'pink': (255, 0, 255),
-    'blue': (0, 0, 255)
+    'red': (0, 0, 255)
 }
 
 
@@ -29,17 +29,25 @@ def plot_3d_bbox(img, label_info, cam_to_img, is_gt=True):
     # theta_ray = label_info['theta_ray']
     box_3d = []
     center = label_info['location']
-    box_2d = label_info['box_2d']
     dims = label_info['dimension'] 
     
+    color = colors['green']
+    
+
+    if center[0] > 20 or center[0] < -20:
+        return img
+
+    if center[2] < 20 or (2.5 >= center[0] >= -2.5):# in meters
+        color = colors['yellow']
+    
+    if center[2] < 20 and (5 >= center[0] >= -5):# in meters
+        color = colors['red']
     
     cam_to_img = cam_to_img#label_info['calib']
 
-    if is_gt:
-        rot_y = label_info['rot_y']
-    else:
-        rot_y = alpha / 180 * np.pi + np.arctan(center[0] / center[2])
-        # import pdb; pdb.set_trace()
+    rot_y = label_info['rot_y']
+
+    height, width = img.shape[0], img.shape[1]
 
     for i in [1, -1]:
         for j in [1, -1]:
@@ -56,18 +64,16 @@ def plot_3d_bbox(img, label_info, cam_to_img, is_gt=True):
                 point = point[:2] / point[2]
                 point = point.astype(np.int16)
                 box_3d.append(point)
-    front_mark = []
+    
     for i in range(4):
         point_1_ = box_3d[2 * i]
         point_2_ = box_3d[2 * i + 1]
-        cv2.line(img, (point_1_[0], point_1_[1]), (point_2_[0], point_2_[1]), colors['pink'], 1)
-        
-
+        cv2.line(img, (point_1_[0], point_1_[1]), (point_2_[0], point_2_[1]), color, 1)
 
     for i in range(8):
         point_1_ = box_3d[i]
         point_2_ = box_3d[(i + 2) % 8]
-        cv2.line(img, (point_1_[0], point_1_[1]), (point_2_[0], point_2_[1]), colors['pink'], 1)
+        cv2.line(img, (point_1_[0], point_1_[1]), (point_2_[0], point_2_[1]), color, 1)
 
     return img
 
@@ -77,8 +83,6 @@ def draw_3d_bbox(detections, image, camp_to_img):
         label_info = {}
         # this angle need a preprocess
         label_info['alpha'] = float(l[3])
-        label_info['box_2d'] = np.asarray(l[4:8], dtype=float)
-        box_2d = label_info['box_2d']
         label_info['location'] = np.asarray(l[11: 14], dtype=float)
         label_info['dimension'] = np.asarray(l[8: 11], dtype=float)
         label_info['rot_y'] = float(l[14])
@@ -266,9 +270,7 @@ def main(scene_base_dir, scene_name):
 
     fourcc = cv2.VideoWriter_fourcc(*'DIVX')
     shape = sampledata[0]['img'].shape
-    out = cv2.VideoWriter('{}/{}.avi'.format(output_dir,scene_name), fourcc, 15, (shape[1], shape[0]), True)
-
-    # writer = VideoWriter(filename, frameSize=(w, h))
+    out = cv2.VideoWriter('{}/{}.avi'.format(output_dir,scene_name), fourcc, 10, (shape[1], shape[0]), True)
 
     print('starting...')
     for i in range(sampledata.num_samples):
@@ -290,19 +292,27 @@ def main(scene_base_dir, scene_name):
 if __name__ == '__main__':
     base_dir = '/home/sameh/Autonomous-Vehicles/Datasets/Kitti-Raw/kitti_data'
     scene_dates = [
-        #'2011_09_26',
+        '2011_09_26',
         # '2011_09_28' ,
         '2011_09_29', 
-        '2011_09_30',
-        '2011_10_03'
+        # '2011_09_30',
+        # '2011_10_03'
+    ]
+
+    scene_names = [
+        '2011_09_26_drive_0001_sync',
+        '2011_09_26_drive_0011_sync',
+        '2011_09_26_drive_0028_sync',
+        '2011_09_26_drive_0032_sync',
+        '2011_09_26_drive_0056_sync',
+        # '2011_09_29_drive_0004_sync',
     ]
 
     for scene_date in scene_dates:
-        print('processing scenes from', scene_date)
         scene_dir = os.path.join(base_dir, scene_date)
-        scene_names = os.listdir(scene_dir)
+        # scene_names = os.listdir(scene_dir)
         for scene_name in scene_names:
+            print('processing images from', scene_name)
             scene_path = os.path.join(scene_dir, scene_name)
             if os.path.isdir(scene_path):
                 main(scene_dir, scene_name)
-
