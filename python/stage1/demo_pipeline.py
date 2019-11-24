@@ -300,10 +300,10 @@ if __name__ == '__main__':
     ]
 
     scene_names = [
-        '2011_09_26_drive_0001_sync',
-        '2011_09_26_drive_0011_sync',
-        '2011_09_26_drive_0028_sync',
-        '2011_09_26_drive_0032_sync',
+        # '2011_09_26_drive_0001_sync',
+        # '2011_09_26_drive_0011_sync',
+        # '2011_09_26_drive_0028_sync',
+        # '2011_09_26_drive_0032_sync',
         '2011_09_26_drive_0056_sync',
         # '2011_09_29_drive_0004_sync',
     ]
