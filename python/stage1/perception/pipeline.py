@@ -3,8 +3,11 @@ import os
 import cv2
 import numpy as np
 
-from .pointrcnn import init_pointrcnn
-from .pointrcnn import run as pointnet
+from perception import pointrcnn
+from .pointrcnn import run as Pointnet
+
+from perception import lanes
+from .lanes import run as Lanes
 
 colors = {
     'yellow': (0,255,255),
@@ -82,17 +85,24 @@ def draw_3d_bbox(detections, image, camp_to_img):
     return image
 
 
-def run(sampledata, pointrcnn_model_file, video_writer, logger):
+def run(sampledata, pointrcnn_model_file, lanes_model_file, video_writer, logger):
     """
     """
-    pointrcnn_model = init_pointrcnn(sampledata, pointrcnn_model_file, logger)
-    logger.info('beginning 3D object detection and localization')
+    pointrcnn_model = pointrcnn.init_model(sampledata, pointrcnn_model_file, logger)
+    lanes_model = lanes.init_model(lanes_model_file, logger)
+    
     for i in range(sampledata.num_samples):
         dataset_item = sampledata[i]
-        detections = pointnet.run(pointrcnn_model, dataset_item, sampledata.calib)
+
+        detections_3d = Pointnet.run(pointrcnn_model, dataset_item, sampledata.calib)
+        
         # draw 3d bounding boxes on input image
-        image = draw_3d_bbox(detections, dataset_item['img'], sampledata.calib.P2)
-        video_writer.write(image)
+        img = draw_3d_bbox(detections_3d, dataset_item['img'], sampledata.calib.P2)
+
+        # detect and draw drivable space
+        img = Lanes.run(lanes_model, img)
+
+        video_writer.write(img)
         
         if i % 100 == 0:
             logger.debug('finished {} frames'.format(i))
