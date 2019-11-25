@@ -17,7 +17,7 @@ import numpy as np
 from sklearn.cluster import DBSCAN
 from sklearn.preprocessing import StandardScaler
 
-from Lanenet.config import global_config
+from config import global_config
 
 CFG = global_config.cfg
 

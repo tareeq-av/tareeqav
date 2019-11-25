@@ -1,6 +1,7 @@
 import os
 import sys
 
+sys.path.append('../../')
 sys.path.append('../')
 sys.path.append('./')
 
@@ -11,9 +12,9 @@ import numpy as np
 import tensorflow as tf
 import time
 
-from Lanenet.config import global_config
-from Lanenet.lanenet_model import lanenet
-from Lanenet.lanenet_model import lanenet_postprocess
+from config import global_config
+from lanenet_model import lanenet
+from lanenet_model import lanenet_postprocess
 
 CFG = global_config.cfg
 weight_path='./model/tusimple_lanenet_vgg/tusimple_lanenet_vgg.ckpt'
@@ -162,26 +163,12 @@ def infer(filename):
             # plt.imshow(binary_seg_image[0] * 255, cmap='gray')
             # plt.show()
             ###########################################################
-            # train_out = model(img)
-            # out_img = train_out.cpu().data.numpy()[0]
-            # out_img = out_img.transpose((1, 2, 0))
-            # color_mask = pred2color(out_img)
-
-            # tmp = img.cpu().data.numpy()
-            # mask_img = cv2.addWeighted(temp_img, 0.8, color_mask, 0.5, 0.3)
-            # cv2.putText(mask_img, text, (15, 15), cv2.FONT_HERSHEY_DUPLEX, \
-            #             0.4, (0, 0, 0))
-            # mask_resized = cv2.resize(mask_img, (orig_w, orig_h),
-            #                           cv2.INTER_NEAREST)
-            # print( binary_seg_image[0].shape)
             img_combined = np.zeros_like(embedding_image[:, :, (2, 1, 0)])
             img_combined[:, :, 0] =binary_seg_image[0]
             img_combined[:, :, 1] = binary_seg_image[0]
             img_combined[:, :, 2] = binary_seg_image[0]
 
             img_combined=cv2.multiply(img_combined, embedding_image[:, :, (2, 1, 0)])
-            # print(image_vis.shape)
-            # print(img_combined.shape)
             result = cv2.addWeighted(image_resized, 1, img_combined, 0.9, 0)
 
             cv2.imshow(orig_win_name, result)

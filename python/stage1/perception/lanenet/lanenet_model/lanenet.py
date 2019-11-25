@@ -10,10 +10,10 @@ Implement LaneNet Model
 """
 import tensorflow as tf
 
-from Lanenet.config import global_config
-from Lanenet.lanenet_model import lanenet_back_end
-from Lanenet.lanenet_model import lanenet_front_end
-from Lanenet.semantic_segmentation_zoo import cnn_basenet
+from config import global_config
+from lanenet_model import lanenet_back_end
+from lanenet_model import lanenet_front_end
+from semantic_segmentation_zoo import cnn_basenet
 
 CFG = global_config.cfg
 
