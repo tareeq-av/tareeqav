@@ -5,6 +5,9 @@ import cv2
 import torch
 import numpy as np
 
+from perception.lanes.erfnet_road import Net as LanesNet
+
+
 from perception.pointrcnn.lib.config import cfg
 from perception.pointrcnn.lib.utils import kitti_utils
 from perception.pointrcnn.lib.utils.iou3d import iou3d_utils
@@ -100,16 +103,6 @@ def create_logger(log_file):
     console.setFormatter(logging.Formatter(log_format))
     logging.getLogger(__name__).addHandler(console)
     return logging.getLogger(__name__)
-
-
-def load_sampledata(scene_base_dir, scene_name):
-    
-    # data_path = os.path.join(curr_dir, '../data_samples/kitti')
-    # base_dir = '/home/sameh/Autonomous-Vehicles/Datasets/Kitti-Raw/kitti_data'
-    # data_path = os.path.join(base_dir, scene_date)
-    # scene_name = "2011_09_26_drive_0009_sync"
-    
-    return KittiRawData(scene_base_dir, scene_name)
 
 
 def init_pointrcnn(dataset, pointrcnn_filename, logger):
@@ -250,6 +243,10 @@ def run(model, dataset_item, calib):
     return generate_detections(calib, pred_boxes3d_selected, scores_selected, image_shape)
 
 
+def load_sampledata(scene_base_dir, drive_name):
+    return KittiRawData(scene_base_dir, drive_name)
+
+
 def main(scene_base_dir, scene_name):
     """
     """
@@ -294,7 +291,7 @@ if __name__ == '__main__':
     scene_dates = [
         '2011_09_26',
         # '2011_09_28' ,
-        '2011_09_29', 
+        # '2011_09_29', 
         # '2011_09_30',
         # '2011_10_03'
     ]
