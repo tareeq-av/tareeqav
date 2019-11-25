@@ -168,3 +168,4 @@ dmypy.json
 
 output/
 log_*
+*.log

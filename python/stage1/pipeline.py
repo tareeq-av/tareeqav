@@ -32,8 +32,16 @@ def parse_args():
     parser.add_argument(
             '--pointrcnn-model-file',
             dest='pointrcnn_model_file',
-            default=os.path.join(CURRENT_DIR, 'PointRCNN.pth'),
+            default=os.path.join(CURRENT_DIR, 'perception/pointrcnn/PointRCNN.pth'),
             help='Path to the checkpoint of the PointRCNN Model to be used for intefrence.',
+            )
+
+    # path to pretrained lane detection model
+    parser.add_argument(
+            '--lanes-model-file',
+            dest='lanes_model_file',
+            default=os.path.join(CURRENT_DIR, 'perception/lanes/weights_erfnet_road.pth'),
+            help='Path to the checkpoint of the Lane Detection Model to be used for intefrence.',
             )
 
     return parser.parse_args()
@@ -69,7 +77,7 @@ def prepare_output(out_shape, drive_name, fps=10, output_dir='output'):
     return writer
     
 
-def run(scene_base_dir, drive_name, pointrcnn_model_file):
+def run(scene_base_dir, drive_name, pointrcnn_model_file, lanes_model_file):
     """
     """
     logger = create_logger()
@@ -84,11 +92,11 @@ def run(scene_base_dir, drive_name, pointrcnn_model_file):
     
     logger.info("running the perception pipeline...")
     # run the perception stack (3d detection, lane detection, traffic signs)
-    Perception.run(sampledata, pointrcnn_model_file, video_writer, logger)
+    Perception.run(sampledata, pointrcnn_model_file, lanes_model_file, video_writer, logger)
 
 if __name__ == '__main__':
     args = parse_args()
-    run(args.sampledata_dir, args.drive_name, args.pointrcnn_model_file)
+    run(args.sampledata_dir, args.drive_name, args.pointrcnn_model_file, args.lanes_model_file)
 
     # base_dir = '/home/sameh/Autonomous-Vehicles/Datasets/Kitti-Raw/kitti_data'
     # scene_dates = [
