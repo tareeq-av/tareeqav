@@ -94,20 +94,21 @@ Step2: Store them in the folder ./model/tusimple_lanenet_vgg/
 Step3: Download the data and store it in any folder for eg ./data/
 Your final folder structure should look something like:-
 
---perception
-	--lanenet
-		--config
-		--data
-		--lanenet_model
-		--model
-			--tusimple_lanenet_vgg
-				--checkpoint
-				--tusimple_lanenet_vgg.ckpt.data-00000-of-00001
-				--tusimple_lanenet_vgg.ckpt.index
-				--tusimple_lanenet_vgg.ckpt.meta
-		--semantic_segmentation_zoo
-		--tools
-
+```
+perception
+└───lanenet
+   │   config
+   │   data
+   │   data
+   │   semantic_segmentation_zoo
+   │   tools
+   └───model
+       └───model
+       │   checkpoint
+       │   tusimple_lanenet_vgg.ckpt.data-00000-of-00001
+       │   tusimple_lanenet_vgg.ckpt.index
+       │   tusimple_lanenet_vgg.ckpt.meta
+```
 Step4: python predict.py path/to/the/raw/video
 
 
