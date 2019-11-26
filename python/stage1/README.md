@@ -74,3 +74,58 @@ The perception stack comprises the following tasks:
 
 We use the widely adopted PointNet++ deep networks as impelemnted by [PointRCNN](https://arxiv.org/pdf/1812.04244.pdf).
 
+
+###### Lane Detection
+
+####### Installation
+This software has been tested on ubuntu 18.04(x64), python3.6, cuda-10.2, cudnn-7.0 with a GTX-1080ti GPU. 
+To install this software you need tensorflow 1.14.2 
+
+```
+pip3 install -r requirements.txt
+```
+####### Inference
+
+Step1: Download the model files from [here](https://www.dropbox.com/sh/tnsf0lw6psszvy4/AAA81r53jpUI3wLsRW6TiPCya?dl=0)
+Step2: Store them in the folder ./model/tusimple_lanenet_vgg/
+Step3: Download the data and store it in any folder for eg ./data/
+Your final folder structure should look something like:-
+
+--perception
+	--lanenet
+		--config
+		--data
+		--lanenet_model
+		--model
+			--tusimple_lanenet_vgg
+				--checkpoint
+				--tusimple_lanenet_vgg.ckpt.data-00000-of-00001
+				--tusimple_lanenet_vgg.ckpt.index
+				--tusimple_lanenet_vgg.ckpt.meta
+		--semantic_segmentation_zoo
+		--tools
+
+Step4: python predict.py path/to/the/raw/video
+
+
+####### Training your model
+
+You may call the following script to train your own model
+
+```
+python tools/train_lanenet.py 
+--net vgg 
+--dataset_dir ./data/training_data_example
+-m 0
+```
+You can also continue the training process from the snapshot by
+```
+python tools/train_lanenet.py 
+--net vgg 
+--dataset_dir data/training_data_example/ 
+--weights_path path/to/your/last/checkpoint
+-m 0
+```
+	
+
+
