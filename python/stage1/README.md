@@ -90,8 +90,11 @@ pip3 install -r requirements.txt
 ###### Inference
 
 Step1: Download the model files from [here](https://www.dropbox.com/sh/tnsf0lw6psszvy4/AAA81r53jpUI3wLsRW6TiPCya?dl=0)
+
 Step2: Store them in the folder ./model/tusimple_lanenet_vgg/
+
 Step3: Download the data and store it in any folder for eg ./data/
+
 Your final folder structure should look something like:-
 
 ```
