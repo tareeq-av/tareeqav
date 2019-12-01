@@ -40,7 +40,7 @@ def run(model, img):
     output = output.float().unsqueeze(0)
 
     ### Resize to desired scale for easier clustering
-    output = F.interpolate(output, size=(output.size(2) // resize_factor, output.size(3) // resize_factor) , mode='nearest')
+    # output = F.interpolate(output, size=(output.size(2) // resize_factor, output.size(3) // resize_factor) , mode='nearest')
 
     ### Obtaining actual output
     ego_lane_points = torch.nonzero(output.squeeze() == 1)
@@ -58,9 +58,9 @@ def run(model, img):
     output[np.where((output == [2, 2, 2]).all(axis=2))] = COLORS_DEBUG[1]
 
     # Blend the original image and the output of the CNN
-    output = cv2.resize(output, (resized.shape[1], resized.shape[0]), interpolation=cv2.INTER_NEAREST)
-    tmp = cv2.addWeighted(resized, 1, output, 0.4, 0)
+    output = cv2.resize(output, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_AREA)
+    tmp = cv2.addWeighted(img, 1, output, 0.4, 0)
     
     # resize back to original size
-    img = cv2.resize(tmp, (img.shape[1], img.shape[0]), cv2.INTER_NEAREST)
+    img = cv2.resize(tmp, (img.shape[1], img.shape[0]), cv2.INTER_AREA)
     return img

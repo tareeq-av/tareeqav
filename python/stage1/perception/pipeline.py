@@ -101,7 +101,7 @@ def run(sampledata, pointrcnn_model_file, lanes_model_file, video_writer, logger
 
         # detect and draw drivable space
         img = Lanes.run(lanes_model, img)
-
+        cv2.imwrite('./output/images/'+str(i)+'.png', img)
         video_writer.write(img)
         
         if i % 100 == 0:
