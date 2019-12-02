@@ -3,11 +3,16 @@ import os
 import cv2
 import numpy as np
 
-from perception import pointrcnn
-from .pointrcnn import run as Pointnet
+from perception.no_lidar import pointnets
+from perception.no_lidar import psmnet
+from perception.no_lidar.psmnet import run as PsmNet
+from perception.no_lidar.pointnets import run as PseudoLidarPointNet
 
-from perception import lanes
-from .lanes import run as Lanes
+from perception.lidar import pointrcnn
+from perception.lidar.pointrcnn import run as LidarPointNet
+
+# from perception import lanes
+# from .lanes import run as Lanes
 
 colors = {
     'yellow': (0,255,255),
@@ -85,22 +90,42 @@ def draw_3d_bbox(detections, image, camp_to_img):
     return image
 
 
-def run(sampledata, pointrcnn_model_file, lanes_model_file, video_writer, logger):
+def run(
+        sampledata,
+        pointnet_model_file,
+        lanes_model_file,
+        video_writer,
+        logger,
+        disp_model_filename=None,
+        with_lidar=False):
     """
     """
-    pointrcnn_model = pointrcnn.init_model(sampledata, pointrcnn_model_file, logger)
-    lanes_model = lanes.init_model(lanes_model_file, logger)
+    if with_lidar:
+        points_model = pointrcnn.init_model(sampledata, pointnet_model_file, logger)
+    else:
+        if not disp_model_filename:
+            raise RuntimeError("Please provide a pre-trained disparity model when using the No-Lidar option")
+
+        disp_model = psmnet.init_model(psmnet_model_filename, logger)
+        points_model = pointnets.init_model(sampledata, pointnet_model_file, logger)
+    
+    # lanes_model = lanes.init_model(lanes_model_file, logger)
     
     for i in range(sampledata.num_samples):
         dataset_item = sampledata[i]
 
-        detections_3d = Pointnet.run(pointrcnn_model, dataset_item, sampledata.calib)
+        if with_lidar:
+            detections_3d = Pointnet.run(points_model, dataset_item, sampledata.calib)
+        else:
+            detections_2d = yolov3.run()
+            detections_3d = PseudoLidarPointNet.run(detections_2d, pseudo_velo, sampledata.calib)
         
         # draw 3d bounding boxes on input image
         img = draw_3d_bbox(detections_3d, dataset_item['img'], sampledata.calib.P2)
 
         # detect and draw drivable space
-        img = Lanes.run(lanes_model, img)
+        # img = Lanes.run(lanes_model, img)
+
         cv2.imwrite('./output/images/'+str(i)+'.png', img)
         video_writer.write(img)
         

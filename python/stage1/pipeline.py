@@ -44,6 +44,16 @@ def parse_args():
             help='Path to the checkpoint of the Lane Detection Model to be used for intefrence.',
             )
 
+    # use or do not use lidar signal/sensor?
+    parser.add_argument(
+            '--with-lidar',
+            dest='with_lidar',
+            action='store_true',
+            default=False,
+            help='Does this vehicle have a lidar sensor?'
+
+    )
+
     return parser.parse_args()
 
 
@@ -64,20 +74,25 @@ def load_sampledata(scene_base_dir, drive_name):
     return KittiRawData(scene_base_dir, drive_name)
 
 
-def prepare_output(out_shape, drive_name, fps=10, output_dir='output'):
+def prepare_output(out_shape, drive_name, fps=10, output_dir='output', with_lidar=False):
     output_dir = os.path.join(CURRENT_DIR, output_dir)
 
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     
-    video = '{}/{}.avi'.format(output_dir, drive_name)
+    video_name = '{}/{}'.format(output_dir, drive_name)
+    if with_lidar:
+        video_name += '-with-lidar.avi'
+    else:
+        video_name += '.avi'
+    
     fourcc = cv2.VideoWriter_fourcc(*'DIVX')
     
     writer = cv2.VideoWriter(video, fourcc, fps, (out_shape[1], out_shape[0]), True)
     return writer
     
 
-def run(scene_base_dir, drive_name, pointrcnn_model_file, lanes_model_file):
+def run(scene_base_dir, drive_name, pointrcnn_model_file, lanes_model_file, with_lidar=False):
     """
     """
     logger = create_logger()
@@ -88,15 +103,34 @@ def run(scene_base_dir, drive_name, pointrcnn_model_file, lanes_model_file):
             sampledata[0]['img'].shape,
             drive_name, 
             fps=10, 
-            output_dir='output')
+            output_dir='output'
+        )
     
     logger.info("running the perception pipeline...")
     # run the perception stack (3d detection, lane detection, traffic signs)
-    Perception.run(sampledata, pointrcnn_model_file, lanes_model_file, video_writer, logger)
+    Perception.run(
+        sampledata,
+        pointrcnn_model_file,
+        lanes_model_file,
+        video_writer,
+        logger,
+        with_lidar=with_lidar
+    )
 
 if __name__ == '__main__':
     args = parse_args()
-    run(args.sampledata_dir, args.drive_name, args.pointrcnn_model_file, args.lanes_model_file)
+
+    if args.with_lidar:
+        # verify the required models
+        # have been provided
+        
+    run(
+        args.sampledata_dir,
+        args.drive_name,
+        args.pointrcnn_model_file,
+        args.lanes_model_file,
+        with_lidar=args.with_lidar
+    )
 
     # base_dir = '/home/sameh/Autonomous-Vehicles/Datasets/Kitti-Raw/kitti_data'
     # scene_dates = [
