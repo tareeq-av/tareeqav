@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 import argparse
 
@@ -102,29 +103,30 @@ def parse_args():
 def create_logger(level):
     """
     """
-    # log_format = '[TareeqAV Stage 1] %(asctime)s  %(levelname)5s  %(message)s'
+    log_format = '[TareeqAV Stage 1] %(asctime)s  %(levelname)5s  %(message)s'
     log_file = os.path.join(CURRENT_DIR, 'tareeqav_stage1_pipeline.log')
 
-    # logging.basicConfig(level=level, format=log_format, filename=log_file)
-    # console = logging.StreamHandler()
-    # console.setLevel(level)
-    # console.setFormatter(logging.Formatter(log_format))
-    # logging.getLogger(__name__).addHandler(console)
+    logging.basicConfig(level=level, format=log_format, filename=log_file)
+    console = logging.StreamHandler(sys.stdout)
+    console.setLevel(level)
+    console.setFormatter(logging.Formatter(log_format))
+    logging.getLogger(__name__).addHandler(console)
+    return logging.getLogger(__name__)
 
-    logFormatter = logging.Formatter("[TareeqAV Stage 1] %(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
-    rootLogger = logging.getLogger()
+    # logFormatter = logging.Formatter("[TareeqAV Stage 1] %(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
+    # rootLogger = logging.getLogger()
 
-    fileHandler = logging.FileHandler(log_file)
-    fileHandler.setLevel(level)
-    fileHandler.setFormatter(logFormatter)
-    rootLogger.addHandler(fileHandler)
+    # fileHandler = logging.FileHandler(log_file)
+    # fileHandler.setLevel(level)
+    # fileHandler.setFormatter(logFormatter)
+    # rootLogger.addHandler(fileHandler)
 
-    consoleHandler = logging.StreamHandler()
-    consoleHandler.setLevel(level)
-    consoleHandler.setFormatter(logFormatter)
-    rootLogger.addHandler(consoleHandler)
+    # consoleHandler = logging.StreamHandler()
+    # consoleHandler.setLevel(level)
+    # consoleHandler.setFormatter(logFormatter)
+    # rootLogger.addHandler(consoleHandler)
 
-    return rootLogger
+    # return rootLogger
 
 
 def load_sampledata(scene_base_dir, drive_name, logger):
@@ -188,6 +190,7 @@ def run(
     )
 
 if __name__ == '__main__':
+    
     args = parse_args()
 
     if args.with_lidar:
