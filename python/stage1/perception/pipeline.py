@@ -4,10 +4,14 @@ import cv2
 import numpy as np
 
 from perception.no_lidar import yolov3
+from perception.no_lidar import psmnet
+
 from perception.no_lidar.yolov3 import run as YOLO
 # from perception.no_lidar import pointnets
-# from perception.no_lidar import psmnet
-# from perception.no_lidar.psmnet import run as PsmNet
+from perception.no_lidar.psmnet import run as PsmNet
+
+
+
 # from perception.no_lidar.pointnets import run as PseudoLidarPointNet
 
 # from perception.lidar import pointrcnn
@@ -112,8 +116,9 @@ def run(
             raise RuntimeError("Please provide a pre-trained disparity model when using the No-Lidar option")
         
         yolov3_model = yolov3.init_model(yolov3_weights_file, yolov3_config_file, logger)
+        disp_model = psmnet.init_model(disp_model_file, logger)
         # points_model = pointnets.init_model(sampledata, pointnet_model_file, logger)
-        # disp_model = psmnet.init_model(disp_model_file, logger)
+        
         
     # lanes_model = lanes.init_model(lanes_model_file, logger)
     
@@ -123,8 +128,13 @@ def run(
         if with_lidar:
             detections_3d = Pointnet.run(points_model, dataset_item, sampledata.calib)
         else:
+            logger.info("Running a 2D object detector")
             detections_2d = YOLO.run(yolov3_model,  dataset_item)
             logger.debug("YOLOv3 returned {}".format(detections_2d))
+
+            logger.info("Running a disparity estimation network")
+            disp_map = PsmNet.run(disp_model, dataset_item['left_img'], dataset_item['right_img'])
+            logger.debug("PSMNet returned a disparity map with shape {}".format(disp_map.shape))
             
         #     detections_3d = PseudoLidarPointNet.run(detections_2d, pseudo_velo, sampledata.calib)
         
