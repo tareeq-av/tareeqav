@@ -34,7 +34,7 @@ def parse_args():
             '--pointrcnn-model-file',
             dest='pointrcnn_model_file',
             default=os.path.join(CURRENT_DIR, 'perception/lidar/pointrcnn/PointRCNN.pth'),
-            help='Path to the checkpoint of the PointRCNN Model to be used for intefrence.',
+            help='Path to the checkpoint of the PointRCNN Model to be used for for 3D Object Detection.',
             )
 
     # path to pretrained pointnet++ model
@@ -42,7 +42,7 @@ def parse_args():
             '--rgbd-pointnet-model-file',
             dest='rgbd_pointnet_model_file',
             default=os.path.join(CURRENT_DIR, 'perception/no_lidar/pointnets/no_lidar/pointnets/models/model.ckpt'),
-            help='Path to the checkpoint of the RGB-D PointNet Model to be used for intefrence.',
+            help='Path to the checkpoint of the RGB-D Frustum PointNet Model to be used for 3D Object Detection.',
             )
     
     # path to pretrained disparity/depth estimation model
@@ -50,7 +50,8 @@ def parse_args():
             '--disp-model-file',
             dest='disp_model_file',
             default=os.path.join(CURRENT_DIR, 'perception/no_lidar/psmnet/finetune_300.tar'),
-            help='Path to the checkpoint of the Dispary/Depth Estimation Model to be used for intefrence.',
+            help="""Path to the checkpoint of the Disparity/Depth Estimation Model whose output will generate Pseudo-LiDAR,
+                to be used as input to Fustum (RGB-D) PointNet.""",
             )
 
     # path to pretrained YOLO pre-trained weights
@@ -58,7 +59,7 @@ def parse_args():
             '--yolov3-weights-file',
             dest='yolov3_weights_file',
             default=os.path.join(CURRENT_DIR, 'perception/no_lidar/yolov3/yolov3.weights'),
-            help='Path to the YOLOv3 weights to be used for intefrence.',
+            help='Path to the YOLOv3 weights to be used as 2D bounding box input to Fustum (RGB-D) PointNet.',
             )
 
     # path to pretrained YOLO pre-trained weights
