@@ -6,7 +6,7 @@ from torch.autograd import Variable
 
 from darknet import Darknet
 from util import load_classes, write_results
-from preprocess import prep_image, inp_to_image
+from preprocess import prep_image
 
 def run(model, dataset_item):
     """

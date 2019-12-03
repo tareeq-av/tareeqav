@@ -1,39 +1,15 @@
 from __future__ import division
 
+import cv2
+import numpy as np
+
 import torch 
 import torch.nn as nn
 import torch.nn.functional as F 
 from torch.autograd import Variable
-import numpy as np
-import cv2 
-import matplotlib.pyplot as plt
-from util import count_parameters as count
+
 from util import convert2cpu as cpu
 from util import predict_transform
-
-class test_net(nn.Module):
-    def __init__(self, num_layers, input_size):
-        super(test_net, self).__init__()
-        self.num_layers= num_layers
-        self.linear_1 = nn.Linear(input_size, 5)
-        self.middle = nn.ModuleList([nn.Linear(5,5) for x in range(num_layers)])
-        self.output = nn.Linear(5,2)
-    
-    def forward(self, x):
-        x = x.view(-1)
-        self.arglist = [self.linear_1] + [nn.Linear(5,5) for x in range(self.num_layers)] + [self.output]
-        fwd = nn.Sequential(*self.arglist)
-        return fwd(x)
-        
-def get_test_input():
-    img = cv2.imread("dog-cycle-car.png")
-    img = cv2.resize(img, (416,416)) 
-    img_ =  img[:,:,::-1].transpose((2,0,1))
-    img_ = img_[np.newaxis,:,:,:]/255.0
-    img_ = torch.from_numpy(img_).float()
-    img_ = Variable(img_)
-    return img_
-
 
 def parse_cfg(cfgfile):
     """
@@ -49,7 +25,6 @@ def parse_cfg(cfgfile):
     lines = [x for x in lines if x[0] != '#']  
     lines = [x.rstrip().lstrip() for x in lines]
 
-    
     block = {}
     blocks = []
     
@@ -65,9 +40,6 @@ def parse_cfg(cfgfile):
     blocks.append(block)
 
     return blocks
-#    print('\n\n'.join([repr(x) for x in blocks]))
-
-import pickle as pkl
 
 class MaxPoolStride1(nn.Module):
     def __init__(self, kernel_size):
@@ -80,11 +52,9 @@ class MaxPoolStride1(nn.Module):
         pooled_x = nn.MaxPool2d(self.kernel_size, self.pad)(padded_x)
         return pooled_x
     
-
 class EmptyLayer(nn.Module):
     def __init__(self):
         super(EmptyLayer, self).__init__()
-        
 
 class DetectionLayer(nn.Module):
     def __init__(self, anchors):
@@ -97,10 +67,6 @@ class DetectionLayer(nn.Module):
         prediction = x
         prediction = predict_transform(prediction, inp_dim, self.anchors, num_classes, confidence, CUDA)
         return prediction
-        
-
-        
-
 
 class Upsample(nn.Module):
     def __init__(self, stride=2):
@@ -118,8 +84,7 @@ class Upsample(nn.Module):
         hs = stride
         x = x.view(B, C, H, 1, W, 1).expand(B, C, H, stride, W, stride).contiguous().view(B, C, H*stride, W*stride)
         return x
-#       
-        
+
 class ReOrgLayer(nn.Module):
     def __init__(self, stride = 2):
         super(ReOrgLayer, self).__init__()
@@ -147,7 +112,6 @@ def create_modules(blocks):
     
     index = 0    #indexing blocks helps with implementing route  layers (skip connections)
 
-    
     prev_filters = 3
     
     output_filters = []
@@ -193,15 +157,13 @@ def create_modules(blocks):
             if activation == "leaky":
                 activn = nn.LeakyReLU(0.1, inplace = True)
                 module.add_module("leaky_{0}".format(index), activn)
-            
-            
-            
+
         #If it's an upsampling layer
         #We use Bilinear2dUpsampling
         
         elif (x["type"] == "upsample"):
             stride = int(x["stride"])
-#            upsample = Upsample(stride)
+            #upsample = Upsample(stride)
             upsample = nn.Upsample(scale_factor = 2, mode = "nearest")
             module.add_module("upsample_{}".format(index), upsample)
         
@@ -217,9 +179,7 @@ def create_modules(blocks):
                 end = int(x["layers"][1])
             except:
                 end = 0
-                
-            
-            
+
             #Positive anotation
             if start > 0: 
                 start = start - index
@@ -227,26 +187,20 @@ def create_modules(blocks):
             if end > 0:
                 end = end - index
 
-            
             route = EmptyLayer()
             module.add_module("route_{0}".format(index), route)
-            
-            
             
             if end < 0:
                 filters = output_filters[index + start] + output_filters[index + end]
             else:
                 filters= output_filters[index + start]
-                        
-            
-        
+
         #shortcut corresponds to skip connection
         elif x["type"] == "shortcut":
             from_ = int(x["from"])
             shortcut = EmptyLayer()
             module.add_module("shortcut_{}".format(index), shortcut)
-            
-            
+
         elif x["type"] == "maxpool":
             stride = int(x["stride"])
             size = int(x["size"])
@@ -256,37 +210,30 @@ def create_modules(blocks):
                 maxpool = MaxPoolStride1(size)
             
             module.add_module("maxpool_{}".format(index), maxpool)
-        
+
         #Yolo is the detection layer
         elif x["type"] == "yolo":            
             mask = x["mask"].split(",")
             mask = [int(i) for i in mask]
-            
-            
+
             anchors = x["anchors"].split(",")
             anchors = [int(a) for a in anchors]
             anchors = [(anchors[i], anchors[i+1]) for i in range(0, len(anchors),2)]
             anchors = [anchors[i] for i in mask]
-            
+
             detection = DetectionLayer(anchors)
             module.add_module("Detection_{}".format(index), detection)
-        
-            
-            
+
         else:
             print("Something I dunno")
             assert False
-
 
         module_list.append(module)
         prev_filters = filters
         output_filters.append(filters)
         index += 1
-        
-    
+
     return (net_info, module_list)
-
-
 
 class Darknet(nn.Module):
     def __init__(self, cfgfile):
@@ -296,21 +243,17 @@ class Darknet(nn.Module):
         self.header = torch.IntTensor([0,0,0,0])
         self.seen = 0
 
-        
-        
     def get_blocks(self):
         return self.blocks
     
     def get_module_list(self):
         return self.module_list
 
-                
     def forward(self, x, CUDA=True):
         detections = []
         modules = self.blocks[1:]
         outputs = {}   #We cache the outputs for the route layer
-        
-        
+
         write = 0
         for i in range(len(modules)):        
             
@@ -346,11 +289,8 @@ class Darknet(nn.Module):
                 from_ = int(modules[i]["from"])
                 x = outputs[i-1] + outputs[i+from_]
                 outputs[i] = x
-                
-            
-            
+
             elif module_type == 'yolo':        
-                
                 anchors = self.module_list[i][0].anchors
                 #Get the input dimensions
                 inp_dim = int (self.net_info["height"])
@@ -365,24 +305,19 @@ class Darknet(nn.Module):
                 if type(x) == int:
                     continue
 
-                
                 if not write:
                     detections = x
                     write = 1
-                
                 else:
                     detections = torch.cat((detections, x), 1)
                 
                 outputs[i] = outputs[i-1]
-                
-        
-        
+
         try:
             return detections
         except:
             return 0
 
-            
     def load_weights(self, weightfile):
         
         #Open the weights file
@@ -516,15 +451,3 @@ class Darknet(nn.Module):
                 
                 #Let us save the weights for the Convolutional layers
                 cpu(conv.weight.data).numpy().tofile(fp)
-               
-
-
-
-
-#
-#dn = Darknet('cfg/yolov3.cfg')
-#dn.load_weights("yolov3.weights")
-#inp = get_test_input()
-#a, interms = dn(inp)
-#dn.eval()
-#a_i, interms_i = dn(inp)
