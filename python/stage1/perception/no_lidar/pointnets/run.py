@@ -30,47 +30,6 @@ MODEL = importlib.import_module('frustum_pointnets_v1')
 NUM_CLASSES = 2
 NUM_CHANNEL = 4
 
-def get_session_and_ops(batch_size, num_point):
-    ''' Define model graph, load model parameters,
-    create session and return session handle and tensors
-    '''
-    with tf.Graph().as_default():
-        with tf.device('/gpu:'+str(GPU_INDEX)):
-            pointclouds_pl, one_hot_vec_pl, labels_pl, centers_pl, \
-            heading_class_label_pl, heading_residual_label_pl, \
-            size_class_label_pl, size_residual_label_pl = \
-                MODEL.placeholder_inputs(batch_size, num_point)
-            is_training_pl = tf.placeholder(tf.bool, shape=())
-            end_points = MODEL.get_model(pointclouds_pl, one_hot_vec_pl,
-                is_training_pl)
-            loss = MODEL.get_loss(labels_pl, centers_pl,
-                heading_class_label_pl, heading_residual_label_pl,
-                size_class_label_pl, size_residual_label_pl, end_points)
-            saver = tf.train.Saver()
-
-        # Create a session
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth = True
-        config.allow_soft_placement = True
-        sess = tf.Session(config=config)
-
-        # Restore variables from disk.
-        saver.restore(sess, MODEL_PATH)
-        ops = {'pointclouds_pl': pointclouds_pl,
-               'one_hot_vec_pl': one_hot_vec_pl,
-               'labels_pl': labels_pl,
-               'centers_pl': centers_pl,
-               'heading_class_label_pl': heading_class_label_pl,
-               'heading_residual_label_pl': heading_residual_label_pl,
-               'size_class_label_pl': size_class_label_pl,
-               'size_residual_label_pl': size_residual_label_pl,
-               'is_training_pl': is_training_pl,
-               'logits': end_points['mask_logits'],
-               'center': end_points['center'],
-               'end_points': end_points,
-               'loss': loss}
-        return sess, ops
-
 def softmax(x):
     ''' Numpy function for softmax'''
     shape = x.shape
@@ -327,11 +286,11 @@ def extract_frustum_data_rgb_detection(detection, pseudo_velo, img, calib, augme
     return point_set[:,0:NUM_CHANNEL], rot_angle, frustum_angle
 
 
-def run(detections_2d, pseudo_velo, img, calib):
-    ''' Test frustum pointents with 2D boxes from a RGB detector.
+def run(sess, ops, detections_2d, pseudo_velo, img, calib):
+    """Test frustum pointents with 2D boxes from a RGB detector.
     Write test results to KITTI format label files.
     todo (rqi): support variable number of points.
-    '''
+    """
     num_batches = 1
     batch_size = len(detections_2d)
 
@@ -346,7 +305,7 @@ def run(detections_2d, pseudo_velo, img, calib):
     batch_one_hot_to_feed = np.zeros((batch_size, 3))
     batch_data_to_feed = np.zeros((batch_size, NUM_POINT, NUM_CHANNEL))
 
-    sess, ops = get_session_and_ops(batch_size=batch_size, num_point=NUM_POINT)
+    # sess, ops = get_session_and_ops(batch_size=batch_size, num_point=NUM_POINT)
 
     for index, detection in enumerate(detections_2d):
         ps, rot_angle, _ = extract_frustum_data_rgb_detection(detection, pseudo_velo, img, calib)

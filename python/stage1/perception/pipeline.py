@@ -3,13 +3,15 @@ import os
 import cv2
 import numpy as np
 
-from perception.no_lidar import pointnets
-from perception.no_lidar import psmnet
-from perception.no_lidar.psmnet import run as PsmNet
-from perception.no_lidar.pointnets import run as PseudoLidarPointNet
+from perception.no_lidar import yolov3
+from perception.no_lidar.yolov3 import run as YOLO
+# from perception.no_lidar import pointnets
+# from perception.no_lidar import psmnet
+# from perception.no_lidar.psmnet import run as PsmNet
+# from perception.no_lidar.pointnets import run as PseudoLidarPointNet
 
-from perception.lidar import pointrcnn
-from perception.lidar.pointrcnn import run as LidarPointNet
+# from perception.lidar import pointrcnn
+# from perception.lidar.pointrcnn import run as LidarPointNet
 
 # from perception import lanes
 # from .lanes import run as Lanes
@@ -96,19 +98,23 @@ def run(
         lanes_model_file,
         video_writer,
         logger,
-        disp_model_filename=None,
-        with_lidar=False):
+        disp_model_file=None,
+        yolov3_weights_file=None,
+        yolov3_config_file=None,
+        with_lidar=False
+        ):
     """
     """
     if with_lidar:
         points_model = pointrcnn.init_model(sampledata, pointnet_model_file, logger)
     else:
-        if not disp_model_filename:
+        if not disp_model_file:
             raise RuntimeError("Please provide a pre-trained disparity model when using the No-Lidar option")
-
-        disp_model = psmnet.init_model(psmnet_model_filename, logger)
-        points_model = pointnets.init_model(sampledata, pointnet_model_file, logger)
-    
+        
+        yolov3_model = yolov3.init_model(yolov3_weights_file, yolov3_config_file, logger)
+        # points_model = pointnets.init_model(sampledata, pointnet_model_file, logger)
+        # disp_model = psmnet.init_model(disp_model_file, logger)
+        
     # lanes_model = lanes.init_model(lanes_model_file, logger)
     
     for i in range(sampledata.num_samples):
@@ -117,17 +123,19 @@ def run(
         if with_lidar:
             detections_3d = Pointnet.run(points_model, dataset_item, sampledata.calib)
         else:
-            detections_2d = yolov3.run()
-            detections_3d = PseudoLidarPointNet.run(detections_2d, pseudo_velo, sampledata.calib)
+            detections_2d = YOLO.run(yolov3_model,  dataset_item)
+            logger.debug("YOLOv3 returned {}".format(detections_2d))
+            
+        #     detections_3d = PseudoLidarPointNet.run(detections_2d, pseudo_velo, sampledata.calib)
         
-        # draw 3d bounding boxes on input image
-        img = draw_3d_bbox(detections_3d, dataset_item['img'], sampledata.calib.P2)
+        # # draw 3d bounding boxes on input image
+        # img = draw_3d_bbox(detections_3d, dataset_item['img'], sampledata.calib.P2)
 
-        # detect and draw drivable space
-        # img = Lanes.run(lanes_model, img)
+        # # detect and draw drivable space
+        # # img = Lanes.run(lanes_model, img)
 
-        cv2.imwrite('./output/images/'+str(i)+'.png', img)
-        video_writer.write(img)
+        # cv2.imwrite('./output/images/'+str(i)+'.png', img)
+        # video_writer.write(img)
         
-        if i % 100 == 0:
-            logger.debug('finished {} frames'.format(i))
+        # if i % 100 == 0:
+        #     logger.debug('finished {} frames'.format(i))
