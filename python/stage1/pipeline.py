@@ -113,21 +113,6 @@ def create_logger(level):
     logging.getLogger(__name__).addHandler(console)
     return logging.getLogger(__name__)
 
-    # logFormatter = logging.Formatter("[TareeqAV Stage 1] %(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
-    # rootLogger = logging.getLogger()
-
-    # fileHandler = logging.FileHandler(log_file)
-    # fileHandler.setLevel(level)
-    # fileHandler.setFormatter(logFormatter)
-    # rootLogger.addHandler(fileHandler)
-
-    # consoleHandler = logging.StreamHandler()
-    # consoleHandler.setLevel(level)
-    # consoleHandler.setFormatter(logFormatter)
-    # rootLogger.addHandler(consoleHandler)
-
-    # return rootLogger
-
 
 def load_sampledata(scene_base_dir, drive_name, logger):
     return KittiRawData(scene_base_dir, drive_name, logger)
