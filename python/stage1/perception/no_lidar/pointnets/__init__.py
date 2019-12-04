@@ -2,7 +2,7 @@ import tensorflow as tf
 
 from perception.no_lidar.pointnets.models import frustum_pointnets_v1 as model
 
-def init_model(batch_size, num_point):
+def init_model(pointnet_model_file, batch_size=1, num_point=1024):
     """ Define model graph, load model parameters,
     create session and return session handle and tensors
     """
@@ -47,7 +47,7 @@ def init_model(batch_size, num_point):
         sess = tf.Session(config=config)
 
         # Restore variables from disk.
-        saver.restore(sess, MODEL_PATH)
+        saver.restore(sess, pointnet_model_file)
         ops = {'pointclouds_pl': pointclouds_pl,
                'one_hot_vec_pl': one_hot_vec_pl,
                'labels_pl': labels_pl,

@@ -2,7 +2,7 @@ import os
 
 import torch
 
-from .lib.net.point_rcnn import PointRCNN
+from perception.lidar.pointrcnn.lib.net.point_rcnn import PointRCNN
 
 def init_model(dataset, pointrcnn_filename, logger):
     """

@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import logging
 import argparse
 
@@ -41,7 +42,7 @@ def parse_args():
     parser.add_argument(
             '--rgbd-pointnet-model-file',
             dest='rgbd_pointnet_model_file',
-            default=os.path.join(CURRENT_DIR, 'perception/no_lidar/pointnets/no_lidar/pointnets/models/model.ckpt'),
+            default=os.path.join(CURRENT_DIR, 'perception/no_lidar/pointnets/models/model.ckpt'),
             help='Path to the checkpoint of the RGB-D Frustum PointNet Model to be used for 3D Object Detection.',
             )
     
@@ -160,7 +161,7 @@ def run(
             fps=10, 
             output_dir='output'
         )
-    
+    start_time = time.time()
     logger.info("running the perception pipeline...")
     # run the perception stack (3d detection, lane detection, traffic signs)
     Perception.run(
@@ -174,6 +175,8 @@ def run(
         yolov3_config_file=yolov3_config_file,
         with_lidar=with_lidar
     )
+    seconds = time.time() - start_time
+    logger.info("Processed {} samples in {:04.2f} minutes".format(sampledata.num_samples, seconds/60.))
 
 if __name__ == '__main__':
     

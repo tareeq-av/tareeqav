@@ -1,32 +1,15 @@
-import os
-import sys
-
 import cv2
-from PIL import Image
-
-import importlib
 import numpy as np
-import tensorflow as tf
 
-CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
-PARENT_DIR  = os.path.abspath(os.path.join(CURRENT_DIR, os.pardir))
-MODEL_DIR = os.path.join(CURRENT_DIR, 'models')
+# from PIL import Image
 
-sys.path.append(MODEL_DIR)
-sys.path.append(os.path.join(CURRENT_DIR, 'train'))
-
-import provider
+from train import provider
 
 from model_util import NUM_HEADING_BIN, NUM_SIZE_CLUSTER
 
-import mayavi.mlab as mlab
+# import mayavi.mlab as mlab
 
-# Set training configurations
-BATCH_SIZE = 1
-MODEL_PATH = os.path.join(MODEL_DIR, 'model.ckpt')
-GPU_INDEX = 0
 NUM_POINT = 1024
-MODEL = importlib.import_module('frustum_pointnets_v1')
 NUM_CLASSES = 2
 NUM_CHANNEL = 4
 
@@ -41,7 +24,6 @@ def inference(sess, ops, pc, one_hot_vec, batch_size):
     ''' Run inference for frustum pointnets in batch mode '''
     assert pc.shape[0]%batch_size == 0
     num_batches = pc.shape[0]/batch_size
-    print('>>>>>>>> NUM BATCHES', num_batches)
     logits = np.zeros((pc.shape[0], pc.shape[1], NUM_CLASSES))
     centers = np.zeros((pc.shape[0], 3))
     heading_logits = np.zeros((pc.shape[0], NUM_HEADING_BIN))
@@ -247,8 +229,8 @@ def extract_frustum_data_rgb_detection(detection, pseudo_velo, img, calib, augme
     # we only care about car, pedestrian and cyclist(later)
     # that's 0 , 3 and 5 from kitti
     # whic are 0,2,  from coco names 
-    if detection[0] not in (0, 2,): # car and person from coco names
-        return None, None, None
+    # if detection[0] not in (0, 2,): # car and person from coco names
+    #     return None, None, None
 
     xmin,ymin,xmax,ymax = detection[1:]
 
@@ -285,14 +267,13 @@ def extract_frustum_data_rgb_detection(detection, pseudo_velo, img, calib, augme
 
     return point_set[:,0:NUM_CHANNEL], rot_angle, frustum_angle
 
-
-def run(sess, ops, detections_2d, pseudo_velo, img, calib):
+def run(sess, ops, detection, pseudo_velo, img, calib):
     """Test frustum pointents with 2D boxes from a RGB detector.
     Write test results to KITTI format label files.
     todo (rqi): support variable number of points.
     """
     num_batches = 1
-    batch_size = len(detections_2d)
+    batch_size = 1
 
     center_list = []
     heading_cls_list = []
@@ -305,27 +286,21 @@ def run(sess, ops, detections_2d, pseudo_velo, img, calib):
     batch_one_hot_to_feed = np.zeros((batch_size, 3))
     batch_data_to_feed = np.zeros((batch_size, NUM_POINT, NUM_CHANNEL))
 
-    # sess, ops = get_session_and_ops(batch_size=batch_size, num_point=NUM_POINT)
+    ps, rot_angle, _ = extract_frustum_data_rgb_detection(detection, pseudo_velo, img, calib)
+    
+    # we have to swtich indices from coco class indices
+    # to kitti class indices
+    coco_id = detection[0]
+    if coco_id == 0: # that's a person and is 1 in kitti classes
+        kitti_id = 1
+    elif coco_id == 2: # that's a car is 0 in kitti classes
+        kitti_id = 0
+    else:
+        raise Exception("unsupported detection class " + str(coco_id))
 
-    for index, detection in enumerate(detections_2d):
-        ps, rot_angle, _ = extract_frustum_data_rgb_detection(detection, pseudo_velo, img, calib)
-        if isinstance(ps, type(None)):
-            print('???????????????????????????????????????', detection)
-            continue
-
-        # we have to swtich indices from coco class indices
-        # to kitti class indices
-        coco_id = detection[0]
-        if coco_id == 0: # that's a person and is 1 in kitti classes
-            kitti_id = 1
-        elif coco_id == 2: # that's a car is 0 in kitti classes
-            kitti_id = 0
-        else:
-            raise Exception("unsupported detection class " + str(coco_id))
-
-        batch_one_hot_to_feed[index][kitti_id] = 1
-        batch_data_to_feed[index,...] = ps
-        rot_angle_list.append(rot_angle)
+    batch_one_hot_to_feed[0][kitti_id] = 1
+    batch_data_to_feed[0,...] = ps
+    rot_angle_list.append(rot_angle)
 
     # Run one batch inference
     batch_output, batch_center_pred, \
@@ -334,40 +309,99 @@ def run(sess, ops, detections_2d, pseudo_velo, img, calib):
             inference(sess, ops, batch_data_to_feed,
                 batch_one_hot_to_feed, batch_size=batch_size)
 
-    for i in range(batch_size):
-        center_list.append(batch_center_pred[i,:])
-        heading_cls_list.append(batch_hclass_pred[i])
-        heading_res_list.append(batch_hres_pred[i])
-        size_cls_list.append(batch_sclass_pred[i])
-        size_res_list.append(batch_sres_pred[i,:])
-        score_list.append(batch_scores[i])
+    center_list.append(batch_center_pred[0,:])
+    heading_cls_list.append(batch_hclass_pred[0])
+    heading_res_list.append(batch_hres_pred[0])
+    size_cls_list.append(batch_sclass_pred[0])
+    size_res_list.append(batch_sres_pred[0,:])
+    score_list.append(batch_scores[0])
 
-    results = []
-    for i in range(len(center_list)):
-        result = []
-        # idx = id_list[i]
-        # output_str = type_list[i] + " -1 -1 -10 "
-        # box2d = box2d_list[i]
-        # output_str += "%f %f %f %f " % (box2d[0],box2d[1],box2d[2],box2d[3])
-        h,w,l,tx,ty,tz,ry = provider.from_prediction_to_label_format(
-                    center_list[i],
-                    heading_cls_list[i],
-                    heading_res_list[i],
-                    size_cls_list[i],
-                    size_res_list[i],
-                    rot_angle_list[i]
-                    )
+    h,w,l,tx,ty,tz,ry = provider.from_prediction_to_label_format(
+                center_list[0],
+                heading_cls_list[0],
+                heading_res_list[0],
+                size_cls_list[0],
+                size_res_list[0],
+                rot_angle_list[0]
+                )
 
-        xmin,ymin,xmax,ymax = detections_2d[i][1:]
+    xmin,ymin,xmax,ymax = detection[1:]
 
-        result.extend([detections_2d[i][0], -1, -1, -10,xmin,ymin,xmax,ymax,h,w,l,tx,ty,tz,ry,score_list[i]])
-        results.append(result)
+    result = [detection[0], -1, -1, -10,xmin,ymin,xmax,ymax,h,w,l,tx,ty,tz,ry,score_list[0]]
 
-        # output_str += "%f %f %f %f %f %f %f %f" % ()
-        # if idx not in results: results[idx] = []
-        # results[idx].append(output_str)
+    return result
+
+
+# def run(sess, ops, detections_2d, pseudo_velo, img, calib):
+#     """Test frustum pointents with 2D boxes from a RGB detector.
+#     Write test results to KITTI format label files.
+#     todo (rqi): support variable number of points.
+#     """
+#     num_batches = 1
+#     batch_size = len(detections_2d)
+
+#     center_list = []
+#     heading_cls_list = []
+#     heading_res_list = []
+#     size_cls_list = []
+#     size_res_list = []
+#     rot_angle_list = []
+#     score_list = []
     
-    return results
+#     batch_one_hot_to_feed = np.zeros((batch_size, 3))
+#     batch_data_to_feed = np.zeros((batch_size, NUM_POINT, NUM_CHANNEL))
 
-# if __name__ == '__main__':
-#     run([], [], [], None)
+#     # sess, ops = get_session_and_ops(batch_size=batch_size, num_point=NUM_POINT)
+
+#     for index, detection in enumerate(detections_2d):
+#         ps, rot_angle, _ = extract_frustum_data_rgb_detection(detection, pseudo_velo, img, calib)
+#         if isinstance(ps, type(None)):
+#             continue
+
+#         # we have to swtich indices from coco class indices
+#         # to kitti class indices
+#         coco_id = detection[0]
+#         if coco_id == 0: # that's a person and is 1 in kitti classes
+#             kitti_id = 1
+#         elif coco_id == 2: # that's a car is 0 in kitti classes
+#             kitti_id = 0
+#         else:
+#             raise Exception("unsupported detection class " + str(coco_id))
+
+#         batch_one_hot_to_feed[index][kitti_id] = 1
+#         batch_data_to_feed[index,...] = ps
+#         rot_angle_list.append(rot_angle)
+
+#     # Run one batch inference
+#     batch_output, batch_center_pred, \
+#         batch_hclass_pred, batch_hres_pred, \
+#         batch_sclass_pred, batch_sres_pred, batch_scores = \
+#             inference(sess, ops, batch_data_to_feed,
+#                 batch_one_hot_to_feed, batch_size=batch_size)
+
+#     for i in range(batch_size):
+#         center_list.append(batch_center_pred[i,:])
+#         heading_cls_list.append(batch_hclass_pred[i])
+#         heading_res_list.append(batch_hres_pred[i])
+#         size_cls_list.append(batch_sclass_pred[i])
+#         size_res_list.append(batch_sres_pred[i,:])
+#         score_list.append(batch_scores[i])
+
+#     results = []
+#     for i in range(len(center_list)):
+#         result = []
+#         h,w,l,tx,ty,tz,ry = provider.from_prediction_to_label_format(
+#                     center_list[i],
+#                     heading_cls_list[i],
+#                     heading_res_list[i],
+#                     size_cls_list[i],
+#                     size_res_list[i],
+#                     rot_angle_list[i]
+#                     )
+
+#         xmin,ymin,xmax,ymax = detections_2d[i][1:]
+
+#         result.extend([detections_2d[i][0], -1, -1, -10,xmin,ymin,xmax,ymax,h,w,l,tx,ty,tz,ry,score_list[i]])
+#         results.append(result)
+
+#     return results
