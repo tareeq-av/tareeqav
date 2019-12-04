@@ -1,13 +1,14 @@
 from __future__ import print_function
 
-from submodule import *
+import math
+
 import torch
 import torch.nn as nn
 import torch.utils.data
 from torch.autograd import Variable
 import torch.nn.functional as F
-import math
 
+from submodule import *
 
 class hourglass(nn.Module):
     def __init__(self, inplanes):
