@@ -11,8 +11,8 @@ from perception.no_lidar.yolov3 import run as YOLO
 from perception.no_lidar.psmnet import run as PsmNet
 from perception.no_lidar.pointnets import run as PseudoLidarPointNet
 
-# from perception.lidar import pointrcnn
-# from perception.lidar.pointrcnn import run as LidarPointNet
+from perception.lidar import pointrcnn
+from perception.lidar.pointrcnn import run as LidarPointNet
 
 # from perception import lanes
 # from .lanes import run as Lanes
@@ -146,7 +146,7 @@ def run(
         dataset_item = sampledata[i]
 
         if with_lidar:
-            detections_3d = Pointnet.run(points_model, dataset_item, sampledata.calib)
+            detections_3d = LidarPointNet.run(points_model, dataset_item, sampledata.calib)
         else:
             logger.info("[Perception] Running one frame through the pipeline with pseudo-lidar")
             detections_2d = YOLO.run(yolov3_model,  dataset_item)

@@ -1,21 +1,20 @@
 import torch.nn as nn
-from typing import List, Tuple
 
 
 class SharedMLP(nn.Sequential):
 
     def __init__(
             self,
-            args: List[int],
-            *,
-            bn: bool = False,
+            args,
+            bn= False,
             activation=nn.ReLU(inplace=True),
-            preact: bool = False,
-            first: bool = False,
-            name: str = "",
-            instance_norm: bool = False,
+            preact = False,
+            first = False,
+            name = "",
+            instance_norm = False,
+            *targs
     ):
-        super().__init__()
+        super(SharedMLP, self).__init__()
 
         for i in range(len(args) - 1):
             self.add_module(
@@ -52,7 +51,7 @@ class _ConvBase(nn.Sequential):
             instance_norm=False,
             instance_norm_func=None
     ):
-        super().__init__()
+        super(_ConvBase, self).__init__()
 
         bias = bias and (not bn)
         conv_unit = conv(
@@ -104,7 +103,7 @@ class _ConvBase(nn.Sequential):
 class _BNBase(nn.Sequential):
 
     def __init__(self, in_size, batch_norm=None, name=""):
-        super().__init__()
+        super(_BNBase, self).__init__()
         self.add_module(name + "bn", batch_norm(in_size))
 
         nn.init.constant_(self[0].weight, 1.0)
@@ -113,35 +112,35 @@ class _BNBase(nn.Sequential):
 
 class BatchNorm1d(_BNBase):
 
-    def __init__(self, in_size: int, *, name: str = ""):
-        super().__init__(in_size, batch_norm=nn.BatchNorm1d, name=name)
+    def __init__(self, in_size, name = "", *args):
+        super(BatchNorm1d, self).__init__(in_size, batch_norm=nn.BatchNorm1d, name=name)
 
 
 class BatchNorm2d(_BNBase):
 
-    def __init__(self, in_size: int, name: str = ""):
-        super().__init__(in_size, batch_norm=nn.BatchNorm2d, name=name)
+    def __init__(self, in_size, name = ""):
+        super(BatchNorm2d, self).__init__(in_size, batch_norm=nn.BatchNorm2d, name=name)
 
 
 class Conv1d(_ConvBase):
 
     def __init__(
             self,
-            in_size: int,
-            out_size: int,
-            *,
-            kernel_size: int = 1,
-            stride: int = 1,
-            padding: int = 0,
+            in_size,
+            out_size,        
+            kernel_size = 1,
+            stride = 1,
+            padding = 0,
             activation=nn.ReLU(inplace=True),
-            bn: bool = False,
+            bn = False,
             init=nn.init.kaiming_normal_,
-            bias: bool = True,
-            preact: bool = False,
-            name: str = "",
-            instance_norm=False
+            bias = True,
+            preact = False,
+            name = "",
+            instance_norm=False,
+            *args
     ):
-        super().__init__(
+        super(Conv1d, self).__init__(
             in_size,
             out_size,
             kernel_size,
@@ -164,21 +163,21 @@ class Conv2d(_ConvBase):
 
     def __init__(
             self,
-            in_size: int,
-            out_size: int,
-            *,
-            kernel_size: Tuple[int, int] = (1, 1),
-            stride: Tuple[int, int] = (1, 1),
-            padding: Tuple[int, int] = (0, 0),
+            in_size,
+            out_size,
+            kernel_size = (1, 1),
+            stride = (1, 1),
+            padding = (0, 0),
             activation=nn.ReLU(inplace=True),
-            bn: bool = False,
+            bn = False,
             init=nn.init.kaiming_normal_,
-            bias: bool = True,
-            preact: bool = False,
-            name: str = "",
-            instance_norm=False
+            bias = True,
+            preact = False,
+            name = "",
+            instance_norm=False,
+            *args
     ):
-        super().__init__(
+        super(Conv2d, self).__init__(
             in_size,
             out_size,
             kernel_size,
@@ -201,16 +200,16 @@ class FC(nn.Sequential):
 
     def __init__(
             self,
-            in_size: int,
-            out_size: int,
-            *,
+            in_size,
+            out_size,            
             activation=nn.ReLU(inplace=True),
-            bn: bool = False,
+            bn = False,
             init=None,
-            preact: bool = False,
-            name: str = ""
+            preact = False,
+            name = "",
+            *args
     ):
-        super().__init__()
+        super(FC, self).__init__()
 
         fc = nn.Linear(in_size, out_size, bias=not bn)
         if init is not None:

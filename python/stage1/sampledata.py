@@ -481,10 +481,7 @@ class KittiRawData:
             sample_info['pts_input'] = pts_input
             sample_info['pts_rect'] = ret_pts_rect
             sample_info['pts_features'] = ret_pts_features
-            
-            sample_info['rpn_cls_label'] = rpn_cls_label
-            sample_info['rpn_reg_label'] = rpn_reg_label
-            sample_info['gt_boxes3d'] = aug_gt_boxes3d
+    
         return sample_info
 
 if __name__  == '__main__':

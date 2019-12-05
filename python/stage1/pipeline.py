@@ -116,8 +116,8 @@ def create_logger(level):
     return logging.getLogger(__name__)
 
 
-def load_sampledata(scene_base_dir, drive_name, logger):
-    return KittiRawData(scene_base_dir, drive_name, logger)
+def load_sampledata(scene_base_dir, drive_name, logger, with_lidar=False):
+    return KittiRawData(scene_base_dir, drive_name, logger, with_lidar=with_lidar)
 
 
 def prepare_output(out_shape, drive_name, fps=10, output_dir='output', with_lidar=False):
@@ -152,7 +152,7 @@ def run(
     """
     """
     logger = create_logger(logging.DEBUG if debug else logging.INFO)
-    sampledata = load_sampledata(scene_base_dir, drive_name, logger)
+    sampledata = load_sampledata(scene_base_dir, drive_name, logger, with_lidar=with_lidar)
 
     logger.debug("preparing a video writer for visualization of the pipeline")
     video_writer = prepare_output(

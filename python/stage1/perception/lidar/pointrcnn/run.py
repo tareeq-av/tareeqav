@@ -5,11 +5,11 @@ import cv2
 import torch
 import numpy as np
 
-from perception.pointrcnn.lib.config import cfg
-from perception.pointrcnn.lib.utils import kitti_utils
-from perception.pointrcnn.lib.utils.iou3d import iou3d_utils
+from perception.lidar.pointrcnn.lib.config import cfg
+from perception.lidar.pointrcnn.lib.utils import kitti_utils
+from perception.lidar.pointrcnn.lib.utils.iou3d import iou3d_utils
 
-from perception.pointrcnn.lib.utils.bbox_transform import decode_bbox_target
+from perception.lidar.pointrcnn.lib.utils.bbox_transform import decode_bbox_target
 
 def generate_detections(calib, bbox3d, scores, img_shape):
     """
@@ -130,4 +130,4 @@ def run(model, dataset_item, calib):
         raw_scores = rcnn_cls[:, pred_classes]
         norm_scores = cls_norm_scores[:, pred_classes]
 
-    return filter_detections(pred_boxes3d, raw_scores, norm_scores, calib, dataset_item['img'].shape)
+    return filter_detections(pred_boxes3d, raw_scores, norm_scores, calib, dataset_item['left_img_cv2'].shape)

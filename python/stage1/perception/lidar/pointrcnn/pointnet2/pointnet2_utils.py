@@ -2,20 +2,19 @@ import torch
 from torch.autograd import Variable
 from torch.autograd import Function
 import torch.nn as nn
-from typing import Tuple
 
 import pointnet2_cuda as pointnet2
 
 
 class FurthestPointSampling(Function):
     @staticmethod
-    def forward(ctx, xyz: torch.Tensor, npoint: int) -> torch.Tensor:
+    def forward(ctx, xyz, npoint):
         """
         Uses iterative furthest point sampling to select a set of npoint features that have the largest
         minimum distance
         :param ctx:
         :param xyz: (B, N, 3) where N > npoint
-        :param npoint: int, number of features in the sampled set
+        :param npoint, number of features in the sampled set
         :return:
              output: (B, npoint) tensor containing the set
         """
@@ -39,7 +38,7 @@ furthest_point_sample = FurthestPointSampling.apply
 class GatherOperation(Function):
 
     @staticmethod
-    def forward(ctx, features: torch.Tensor, idx: torch.Tensor) -> torch.Tensor:
+    def forward(ctx, features, idx):
         """
         :param ctx:
         :param features: (B, C, N)
@@ -76,7 +75,7 @@ gather_operation = GatherOperation.apply
 class ThreeNN(Function):
 
     @staticmethod
-    def forward(ctx, unknown: torch.Tensor, known: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(ctx, unknown, known):
         """
         Find the three nearest neighbors of unknown in known
         :param ctx:
@@ -108,7 +107,7 @@ three_nn = ThreeNN.apply
 class ThreeInterpolate(Function):
 
     @staticmethod
-    def forward(ctx, features: torch.Tensor, idx: torch.Tensor, weight: torch.Tensor) -> torch.Tensor:
+    def forward(ctx, features, idx, weight):
         """
         Performs weight linear interpolation on 3 features
         :param ctx:
@@ -131,7 +130,7 @@ class ThreeInterpolate(Function):
         return output
 
     @staticmethod
-    def backward(ctx, grad_out: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def backward(ctx, grad_out):
         """
         :param ctx:
         :param grad_out: (B, C, N) tensor with gradients of outputs
@@ -156,7 +155,7 @@ three_interpolate = ThreeInterpolate.apply
 class GroupingOperation(Function):
 
     @staticmethod
-    def forward(ctx, features: torch.Tensor, idx: torch.Tensor) -> torch.Tensor:
+    def forward(ctx, features, idx):
         """
         :param ctx:
         :param features: (B, C, N) tensor of features to group
@@ -177,7 +176,7 @@ class GroupingOperation(Function):
         return output
 
     @staticmethod
-    def backward(ctx, grad_out: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def backward(ctx, grad_out):
         """
         :param ctx:
         :param grad_out: (B, C, npoint, nsample) tensor of the gradients of the output from forward
@@ -200,11 +199,11 @@ grouping_operation = GroupingOperation.apply
 class BallQuery(Function):
 
     @staticmethod
-    def forward(ctx, radius: float, nsample: int, xyz: torch.Tensor, new_xyz: torch.Tensor) -> torch.Tensor:
+    def forward(ctx, radius, nsample, xyz, new_xyz):
         """
         :param ctx:
         :param radius: float, radius of the balls
-        :param nsample: int, maximum number of features in the balls
+        :param nsample, maximum number of features in the balls
         :param xyz: (B, N, 3) xyz coordinates of the features
         :param new_xyz: (B, npoint, 3) centers of the ball query
         :return:
@@ -229,16 +228,16 @@ ball_query = BallQuery.apply
 
 
 class QueryAndGroup(nn.Module):
-    def __init__(self, radius: float, nsample: int, use_xyz: bool = True):
+    def __init__(self, radius, nsample, use_xyz = True):
         """
         :param radius: float, radius of ball
-        :param nsample: int, maximum number of features to gather in the ball
+        :param nsample, maximum number of features to gather in the ball
         :param use_xyz:
         """
-        super().__init__()
+        super(QueryAndGroup, self).__init__()
         self.radius, self.nsample, self.use_xyz = radius, nsample, use_xyz
 
-    def forward(self, xyz: torch.Tensor, new_xyz: torch.Tensor, features: torch.Tensor = None) -> Tuple[torch.Tensor]:
+    def forward(self, xyz, new_xyz, features = None) :
         """
         :param xyz: (B, N, 3) xyz coordinates of the features
         :param new_xyz: (B, npoint, 3) centroids
@@ -265,11 +264,11 @@ class QueryAndGroup(nn.Module):
 
 
 class GroupAll(nn.Module):
-    def __init__(self, use_xyz: bool = True):
-        super().__init__()
+    def __init__(self, use_xyz = True):
+        super(GroupAll, self).__init__()
         self.use_xyz = use_xyz
 
-    def forward(self, xyz: torch.Tensor, new_xyz: torch.Tensor, features: torch.Tensor = None):
+    def forward(self, xyz, new_xyz, features = None):
         """
         :param xyz: (B, N, 3) xyz coordinates of the features
         :param new_xyz: ignored
