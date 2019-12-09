@@ -70,7 +70,7 @@ def infer(filename):
     """
     log.info('Start reading image and preprocessing')
     t_start = time.time()
-    orig_h, orig_w = 720, 1280
+    orig_h, orig_w = 256, 512
     resized_h, resized_w = 256, 384
 
     fourcc = cv2.VideoWriter_fourcc(*'MJPG')
