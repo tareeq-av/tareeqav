@@ -33,7 +33,7 @@ class CNNBaseModel(object):
         :param kernel_size: int so only support square kernel convolution
         :param padding: 'VALID' or 'SAME'
         :param stride: int so only support square stride
-        :param w_init: initializer for convolution tusimple_lanenet_vgg
+        :param w_init: initializer for convolution weights
         :param b_init: initializer for bias
         :param split: split channels as used in Alexnet mainly group for GPU memory save.
         :param use_bias:  whether to use bias.
@@ -371,7 +371,7 @@ class CNNBaseModel(object):
         :param kernel_size: int so only support square kernel convolution
         :param padding: 'VALID' or 'SAME'
         :param stride: int so only support square stride
-        :param w_init: initializer for convolution tusimple_lanenet_vgg
+        :param w_init: initializer for convolution weights
         :param b_init: initializer for bias
         :param activation: whether to apply a activation func to deconv result
         :param use_bias:  whether to use bias.
