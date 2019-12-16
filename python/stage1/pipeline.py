@@ -30,19 +30,11 @@ def parse_args():
             help='Name, date and number of the KITTI RAW Dataset example, eg: 2011_09_26_drive_0056_sync.',
             )
 
-    # path to pretrained ponitrcnn model
-    parser.add_argument(
-            '--pointrcnn-model-file',
-            dest='pointrcnn_model_file',
-            default=os.path.join(CURRENT_DIR, 'perception/lidar/pointrcnn/PointRCNN.pth'),
-            help='Path to the checkpoint of the PointRCNN Model to be used for for 3D Object Detection.',
-            )
-
     # path to pretrained pointnet++ model
     parser.add_argument(
             '--rgbd-pointnet-model-file',
             dest='rgbd_pointnet_model_file',
-            default=os.path.join(CURRENT_DIR, 'perception/no_lidar/pointnets/models/model.ckpt'),
+            default=os.path.join(CURRENT_DIR, 'perception/pointnets/models/model.ckpt'),
             help='Path to the checkpoint of the RGB-D Frustum PointNet Model to be used for 3D Object Detection.',
             )
     
@@ -50,7 +42,7 @@ def parse_args():
     parser.add_argument(
             '--disp-model-file',
             dest='disp_model_file',
-            default=os.path.join(CURRENT_DIR, 'perception/no_lidar/psmnet/finetune_300.tar'),
+            default=os.path.join(CURRENT_DIR, 'perception/psmnet/finetune_300.tar'),
             help="""Path to the checkpoint of the Disparity/Depth Estimation Model whose output will generate Pseudo-LiDAR,
                 to be used as input to Fustum (RGB-D) PointNet.""",
             )
@@ -59,7 +51,7 @@ def parse_args():
     parser.add_argument(
             '--yolov3-weights-file',
             dest='yolov3_weights_file',
-            default=os.path.join(CURRENT_DIR, 'perception/no_lidar/yolov3/yolov3.weights'),
+            default=os.path.join(CURRENT_DIR, 'perception/yolov3/yolov3.weights'),
             help='Path to the YOLOv3 weights to be used as 2D bounding box input to Fustum (RGB-D) PointNet.',
             )
 
@@ -67,7 +59,7 @@ def parse_args():
     parser.add_argument(
             '--yolov3-config-file',
             dest='yolov3_config_file',
-            default=os.path.join(CURRENT_DIR, 'perception/no_lidar/yolov3/cfg/yolov3.cfg'),
+            default=os.path.join(CURRENT_DIR, 'perception/yolov3/cfg/yolov3.cfg'),
             help='Path to the YOLOv3 config file.',
             )
 
@@ -78,16 +70,6 @@ def parse_args():
             default=os.path.join(CURRENT_DIR, 'perception/common/lanes/weights_erfnet_road.pth'),
             help='Path to the checkpoint of the Lane Detection Model to be used for intefrence.',
             )
-
-    # use or do not use lidar signal/sensor?
-    parser.add_argument(
-            '--with-lidar',
-            dest='with_lidar',
-            action='store_true',
-            default=False,
-            help='Does this vehicle have a lidar sensor?'
-
-    )
 
     # enable debug logging level ?
     parser.add_argument(
@@ -146,7 +128,6 @@ def run(
         disp_model_file=None,
         yolov3_weights_file=None,
         yolov3_config_file=None,
-        with_lidar=False,
         debug=False
     ):
     """
@@ -163,6 +144,7 @@ def run(
         )
     start_time = time.time()
     logger.info("running the perception pipeline...")
+    
     # run the perception stack (3d detection, lane detection, traffic signs)
     Perception.run(
         sampledata,
@@ -172,56 +154,23 @@ def run(
         logger,
         disp_model_file=disp_model_file,
         yolov3_weights_file=yolov3_weights_file,
-        yolov3_config_file=yolov3_config_file,
-        with_lidar=with_lidar
+        yolov3_config_file=yolov3_config_file
     )
+
     seconds = time.time() - start_time
     logger.info("Processed {} samples in {:04.2f} minutes".format(sampledata.num_samples, seconds/60.))
 
 if __name__ == '__main__':
     
     args = parse_args()
-
-    if args.with_lidar:
-        pointnet_model_file = args.pointrcnn_model_file
-    else:
-        pointnet_model_file = args.rgbd_pointnet_model_file
         
     run(
         args.sampledata_dir,
         args.drive_name,
-        pointnet_model_file,
+        args.rgbd_pointnet_model_file,
         args.lanes_model_file,
         disp_model_file=args.disp_model_file,
         yolov3_weights_file=args.yolov3_weights_file,
         yolov3_config_file=args.yolov3_config_file,
-        with_lidar=args.with_lidar,
         debug=args.debug
     )
-
-    # base_dir = '/home/sameh/Autonomous-Vehicles/Datasets/Kitti-Raw/kitti_data'
-    # scene_dates = [
-    #     '2011_09_26',
-    #     # '2011_09_28' ,
-    #     '2011_09_29', 
-    #     # '2011_09_30',
-    #     # '2011_10_03'
-    # ]
-
-    # scene_names = [
-    #     # '2011_09_26_drive_0001_sync',
-    #     # '2011_09_26_drive_0011_sync',
-    #     # '2011_09_26_drive_0028_sync',
-    #     # '2011_09_26_drive_0032_sync',
-    #     '2011_09_26_drive_0056_sync',
-    #     # '2011_09_29_drive_0004_sync',
-    # ]
-
-    # for scene_date in scene_dates:
-    #     scene_dir = os.path.join(base_dir, scene_date)
-    #     # scene_names = os.listdir(scene_dir)
-    #     for scene_name in scene_names:
-    #         print('processing images from', scene_name)
-    #         scene_path = os.path.join(scene_dir, scene_name)
-    #         if os.path.isdir(scene_path):
-    #             main(scene_dir, scene_name)
