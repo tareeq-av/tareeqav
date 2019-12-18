@@ -8,6 +8,8 @@ import skimage
 import skimage.io
 import skimage.transform
 
+from PIL import Image
+
 def inverse_rigid_trans(Tr):
     ''' Inverse a rigid body transform matrix (3x4 as [R|t])
         [R'|-R't; 0|1]
@@ -397,6 +399,34 @@ class KittiRawData:
         # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         # img = (skimage.io.imread(img_file).astype('float32'))
         return img
+    
+    def _get_left_image_pil(self, image_idx):
+        # assert False, 'DO NOT USE cv2 NOW, AVOID DEADLOCK'
+        # cv2.setNumThreads(0)  # for solving deadlock when switching epoch
+        img_file = os.path.join(
+            '{}/{}/{}'.format(self.data_path, self.scene_name, self.left_camera),
+            image_idx
+        )
+        self.logger.debug('retrieving image form file {}'.format(img_file))
+        assert os.path.exists(img_file)
+        img = Image.open(img_file).convert('RGB')
+        # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        # img = (skimage.io.imread(img_file).astype('float32'))
+        return img
+
+    def _get_right_image_pil(self, image_idx):
+        # assert False, 'DO NOT USE cv2 NOW, AVOID DEADLOCK'
+        # cv2.setNumThreads(0)  # for solving deadlock when switching epoch
+        img_file = os.path.join(
+            '{}/{}/{}'.format(self.data_path, self.scene_name, self.right_camera),
+            image_idx
+        )
+        self.logger.debug('retrieving image form file {}'.format(img_file))
+        assert os.path.exists(img_file)
+        img = Image.open(img_file).convert('RGB')
+        # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        # img = (skimage.io.imread(img_file).astype('float32'))
+        return img
 
     def _get_right_image(self, image_idx):
         # assert False, 'DO NOT USE cv2 NOW, AVOID DEADLOCK'
@@ -474,6 +504,8 @@ class KittiRawData:
         sample_info = {}
         sample_info['left_img'] = imgL_o
         sample_info['right_img'] = imgR_o
+        sample_info['left_img_pil'] = self._get_left_image_pil(image_idx)
+        sample_info['right_img_pil'] = self._get_right_image_pil(image_idx)
         sample_info['left_img_cv2'] = self._get_left_image_cv2(image_idx)
 
         if self.with_lidar:

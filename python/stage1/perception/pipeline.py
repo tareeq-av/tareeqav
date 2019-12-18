@@ -4,15 +4,14 @@ import cv2
 import numpy as np
 
 from perception import yolov3
-from perception import psmnet
+# from perception import psmnet
+from perception import anynet
 from perception import pointnets
 
 from perception.yolov3 import run as YOLO
-from perception.psmnet import run as PsmNet
+from perception.anynet import run as AnyNet
+# from perception.psmnet import run as PsmNet
 from perception.pointnets import run as PseudoLidarPointNet
-
-# from perception.lidar import pointrcnn
-# from perception.lidar.pointrcnn import run as LidarPointNet
 
 # from perception import lanes
 # from .lanes import run as Lanes
@@ -131,7 +130,7 @@ def run(
         raise RuntimeError("Please provide a pre-trained disparity model when using the No-Lidar option")
         
     yolov3_model = yolov3.init_model(yolov3_weights_file, yolov3_config_file, logger)
-    disp_model = psmnet.init_model(disp_model_file, logger)
+    disp_model = anynet.init_model(disp_model_file, logger)
     tf_sess, tf_ops = pointnets.init_model(pointnet_model_file, batch_size=1)
         
     # lanes_model = lanes.init_model(lanes_model_file, logger)
@@ -150,8 +149,9 @@ def run(
         detections_2d = list(filter(not_far_away, detections_2d))
 
         logger.debug("Running a disparity estimation network")
-        disp_map = PsmNet.run(disp_model, dataset_item['left_img'], dataset_item['right_img'])
-        logger.debug("PSMNet returned a disparity map with shape {}".format(disp_map.shape))
+        # disp_map = PsmNet.run(disp_model, dataset_item['left_img'], dataset_item['right_img'])
+        disp_map = AnyNet.run(disp_model, dataset_item['left_img_pil'], dataset_item['right_img_pil'])
+        logger.debug("AnyNet returned a disparity map with shape {}".format(disp_map.shape))
         
         logger.debug("Generating pseudo-lidar from disparity map")
         pseudo_velo = project_disp_to_points(sampledata.calib, disp_map)
@@ -160,6 +160,7 @@ def run(
 
         logger.debug("Running RBG-D 3D object detection with pseudo-lidar")
         detections_3d = []
+
         for detection in detections_2d:
             result = PseudoLidarPointNet.run(
                     tf_sess, tf_ops,
@@ -170,12 +171,12 @@ def run(
             )
             detections_3d.append(result)
     
-    # draw 3d bounding boxes on input image
-    img = draw_3d_bbox(detections_3d, dataset_item['left_img_cv2'], sampledata.calib.P2)
-    cv2.imshow('Window', img)
-    cv2.waitKey(0)
-    # # detect and draw drivable space
-    # # img = Lanes.run(lanes_model, img)
+        # draw 3d bounding boxes on input image
+        img = draw_3d_bbox(detections_3d, dataset_item['left_img_cv2'], sampledata.calib.P2)
+        # cv2.imshow('Window', img)
+        # cv2.waitKey(0)
+        # # detect and draw drivable space
+        # # img = Lanes.run(lanes_model, img)
 
-    video_writer.write(img)
+        video_writer.write(img)
   
