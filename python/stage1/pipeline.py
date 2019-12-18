@@ -42,7 +42,7 @@ def parse_args():
     parser.add_argument(
             '--disp-model-file',
             dest='disp_model_file',
-            default=os.path.join(CURRENT_DIR, 'perception/psmnet/finetune_300.tar'),
+            default=os.path.join(CURRENT_DIR, 'perception/anynet/kitti2015_ck/checkpoint.tar'),
             help="""Path to the checkpoint of the Disparity/Depth Estimation Model whose output will generate Pseudo-LiDAR,
                 to be used as input to Fustum (RGB-D) PointNet.""",
             )
