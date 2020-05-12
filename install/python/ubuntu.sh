@@ -11,4 +11,4 @@ virtualenv --distribute --no-site-packages venv
 source venv/bin/activate
 pip install --upgrade pip
 
-pip install -r perception/requirements.txt
+#pip install -r perception/requirements.txt
