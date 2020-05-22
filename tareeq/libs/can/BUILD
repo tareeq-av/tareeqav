@@ -10,22 +10,22 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 
-# cc_binary(
-#     name = "can_logger",
-#     srcs = ["can_logger.cc"],
-#     deps = [   
-#       ":can",
-#       "@linux_libs//:uavcan"
-#     ],
-# )
-
 cc_binary(
-    name = "can_test",
-    srcs = [
-      "can_test.cc"
-    ],
+    name = "can_logger",
+    srcs = ["can_logger.cc"],
     deps = [   
       ":can",
       "@linux_libs//:uavcan"
     ],
 )
+
+# cc_binary(
+#     name = "can_test",
+#     srcs = [
+#       "can_test.cc"
+#     ],
+#     deps = [   
+#       ":can",
+#       "@linux_libs//:uavcan"
+#     ],
+# )
