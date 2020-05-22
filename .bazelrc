@@ -74,6 +74,6 @@ build --per_file_copt=^modules/.*\.cc,^cyber/.*\.cc@-Werror=conversion
 
 
 # Enable C++14
-build --cxxopt="-std=c++1y"
+build --cxxopt="-std=c++1y" --action_env=UAVCAN_CPP_VERSION=UAVCAN_CPP11
 # Enable colorful output of GCC
 # build --cxxopt="-fdiagnostics-color=always"

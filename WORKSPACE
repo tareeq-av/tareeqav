@@ -16,6 +16,11 @@ cc_library(
 	srcs = ["libgpiodcxx.so"],
 	visibility = ["//visibility:public"],
 )
+cc_library(
+	name = "uavcan",
+	srcs = ["libuavcan.a"],
+	visibility = ["//visibility:public"],
+)
 """,
 )
 
