@@ -19,7 +19,7 @@ class CANWriterImpl : public CANWriter, public CANSocketBase
       std::memcpy(frame.data, msg.data, msg.size);
 
       if (write(sock, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame)) {
-        // perror("Write");
+        std::cerr << "Error in writing can message" << std::endl;
         return false;
       }
 

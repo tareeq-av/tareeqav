@@ -19,13 +19,13 @@ cc_binary(
     ],
 )
 
-# cc_binary(
-#     name = "can_test",
-#     srcs = [
-#       "can_test.cc"
-#     ],
-#     deps = [   
-#       ":can",
-#       "@linux_libs//:uavcan"
-#     ],
-# )
+cc_binary(
+    name = "can_sender",
+    srcs = [
+      "can_sender.cc"
+    ],
+    deps = [   
+      ":can",
+      "@linux_libs//:uavcan"
+    ],
+)

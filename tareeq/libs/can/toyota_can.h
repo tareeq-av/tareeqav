@@ -18,7 +18,7 @@ class ToyotaCAN
 private:
     double accel_ = 0.01;
     double previous_accel_ = 0.0;
-    double steering_command_ = 0;
+    
     std::unique_ptr<CANPacker> packer_;
 
 
@@ -41,6 +41,8 @@ public:
 
     ToyotaCAN(std::unique_ptr<CANPacker>&& packer) : packer_(std::move(packer)){};
 
+    double steering_command_ = 0;
+    
     can_message create_accel_command(
         double accel_value, 
         double pcm_cancel,
@@ -71,7 +73,8 @@ public:
         std::string name("STEERING_LKA");
 
         std::map<std::string, double> values = {
-            {"STEER_REQUEST" , steer_request_on_off},
+            {"LKA_STATE", 5.0},
+            {"STEER_REQUEST" , 1.0},
             {"STEER_TORQUE_CMD" , steer_torque_value},
             {"SET_ME_1" , 1.0},
             {"COUNTER" , counter},
@@ -88,14 +91,14 @@ public:
         {
             
             crc ^= message.data[i];
-            std::cout << "i == " << i << " and crc = " << +crc << std::endl;
+            // std::cout << "i == " << i << " and crc = " << +crc << std::endl;
             for (int j=0; j < 8; j++)
             {
                 if ((crc & 0x80) != 0) {crc = ((crc << 1) ^ poly) & 0xFF;}
                 else  {crc <<= 1;}
             }
         }
-        std::cout << std::endl;
+        // std::cout << std::endl;
         return crc;
     }
 
@@ -188,6 +191,140 @@ public:
         return create_steering_command(steering_command_, 1, counter);
     }
     
+    can_message create_pcm_cruise_msg()
+    {
+        std::string name("PCM_CRUISE");
+
+        std::map<std::string, double> values = {
+            {"GAS_RELEASED", 0.0},
+            {"CRUISE_ACTIVE" , 1.0},
+            {"STANDSTILL_ON" , 0},
+            {"ACCEL_NET" , 0},
+            {"CRUISE_STATE" , 8.0},
+            {"CANCEL_REQ" , 0},
+        };
+
+        return packer_->make_can_msg(name, values, -1);
+    };
+
+    can_message create_pcm_cruise_2_msg()
+    {
+        std::string name("PCM_CRUISE_2");
+
+        std::map<std::string, double> values = {
+            {"MAIN_ON", 0.0},
+            {"LOW_SPEED_LOCKOUT" , 2.0},
+            {"SET_SPEED" , 55.}
+        };
+
+        return packer_->make_can_msg(name, values, -1);
+    };
+
+    can_message create_wheel_speeds_msg()
+    {
+        std::string name("WHEEL_SPEEDS");
+
+        std::map<std::string, double> values = {
+            {"WHEEL_SPEED_FR", 47.0},
+            {"WHEEL_SPEED_FL" , 47.0},
+            {"WHEEL_SPEED_RR" , 47.0},
+            {"WHEEL_SPEED_RL" , 47.0}
+        };
+
+        return packer_->make_can_msg(name, values, -1);
+    };
+
+    can_message create_esp_control_msg()
+    {
+        std::string name("ESP_CONTROL");
+
+        std::map<std::string, double> values = {
+            {"TC_DISABLED", 0.0},
+            {"VSC_DISABLED" , 0.0},
+            {"BRAKE_LIGHTS_ACC" , 0.0}
+        };
+
+        return packer_->make_can_msg(name, values, -1);
+    };
+
+    can_message create_seats_doors_msg()
+    {
+        std::string name("SEATS_DOORS");
+
+        std::map<std::string, double> values = {
+            {"SEATBELT_DRIVER_UNLATCHED", 0.0},
+            {"DOOR_OPEN_FL" , 0.0},
+            {"DOOR_OPEN_RL" , 0.0},
+            {"DOOR_OPEN_RR" , 0.0},
+            {"DOOR_OPEN_FR" , 0.0}
+        };
+
+        return packer_->make_can_msg(name, values, -1);
+    };
+
+    can_message create_gear_packet_msg()
+    {
+        std::string name("GEAR_PACKET");
+
+        std::map<std::string, double> values = {
+            {"GEAR", 0.0},
+            {"SPORT_ON" , 0.0}
+        };
+
+        return packer_->make_can_msg(name, values, -1);
+    };
+
+    can_message create_gas_pedal_msg()
+    {
+        std::string name("GAS_PEDAL");
+
+        std::map<std::string, double> values = {
+            {"GAS_RELEASED", 0.0},
+            {"GAS_PEDAL" , 0.0}
+        };
+
+        return packer_->make_can_msg(name, values, -1);
+    };
+
+    can_message create_brake_module_msg()
+    {
+        std::string name("BRAKE_MODULE");
+
+        std::map<std::string, double> values = {
+            {"BRAKE_PRESSURE", 0.0},
+            {"BRAKE_PRESSED" , 0.0}
+        };
+
+        return packer_->make_can_msg(name, values, -1);
+    };
+
+    can_message create_eps_status_msg()
+    {
+        std::string name("EPS_STATUS");
+
+        std::map<std::string, double> values = {
+            {"IPAS_STATE", 3.0},
+            {"LKA_STATE" , 5.0},
+            {"TYPE", 1.0}
+        };
+
+        return packer_->make_can_msg(name, values, -1);
+    };
+
+    can_message steer_torque_sensor_msg()
+    {
+        std::string name("STEER_TORQUE_SENSOR");
+
+        std::map<std::string, double> values = {
+            {"STEER_TORQUE_EPS", 100},
+            {"STEER_TORQUE_DRIVER" , 100},
+            {"STEER_OVERRIDE", 1},
+            {"STEER_ANGLE", 5}
+
+        };
+
+        return packer_->make_can_msg(name, values, -1);
+    };
 };
 
   } // namespace can

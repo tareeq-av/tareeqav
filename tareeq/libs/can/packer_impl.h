@@ -89,9 +89,9 @@ class CANPackerImpl : public CANPacker, public CANBase
             ival = (1ULL << sig.b2) + ival;
             }
 
-            std::cout << "processing " << name << std::endl;
+            // std::cout << "processing " << name << std::endl;
             ret = set_value(ret, sig, ival);
-            std::cout << std::endl << std::endl;
+            // std::cout << std::endl << std::endl;
         }
 
         if (counter >= 0){
@@ -147,16 +147,18 @@ class CANPackerImpl : public CANPacker, public CANBase
         std::pair<uint32_t, uint32_t> address_and_size = name_to_address_and_size[name];
 
         uint64_t val = pack(address_and_size.first, signals, -1);
-        std::cout << "generated value " << val << " and as an array is:" << std::endl;
+        // std::cout << "generated value " << val << " and as an array is:" << std::endl;
         val = ReverseBytes(val);
 
-        std::cout << std::hex;
-        std::cout << "reversed bytes value " << val << " and as an array is:" << std::endl;
-        for (size_t i=0; i < address_and_size.second; i++) {
-            std::cout << +(*(((uint8_t*)&val)+i)) << " " ;
-        }
+        // std::cout << std::hex;
+        // std::cout << "reversed bytes value " << val << " and as an array is:" << std::endl;
+        // for (size_t i=0; i < address_and_size.second; i++) {
+        //     std::cout << +(*(((uint8_t*)&val)+i)) << " " ;
+        // }
 
-        std::cout << std::endl;
+        // std::cout << std::endl;
+
+
         std::memcpy(msg.data, &val, address_and_size.second);
 
         msg.address = address_and_size.first;

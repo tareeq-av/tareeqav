@@ -38,6 +38,7 @@ class CANParser
   public:
     virtual ~CANParser() = default;
     virtual std::map<std::string, double> parse(can_message msg) = 0;
+    virtual std::string get_binary_string(can_message can_msg) = 0;
 
 };
 

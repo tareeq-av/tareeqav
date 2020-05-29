@@ -44,9 +44,9 @@ class CANParserImpl : public CANParser, public CANBase
       return values;
     }
 
-  private:
+  // private:
 
-    inline std::string int_to_hex(uint8_t i)
+    virtual std::string int_to_hex(uint8_t i)
     {
         std::stringstream stream;
         stream << std::setfill ('0') << std::setw(sizeof(i)*2) 
@@ -54,7 +54,7 @@ class CANParserImpl : public CANParser, public CANBase
         return stream.str();
     }
 
-    inline std::string get_binary_string(can_message can_msg)
+    virtual std::string get_binary_string(can_message can_msg)
     {
       std::string binary;
       for (size_t i=0; i < can_msg.size; i++)
