@@ -26,7 +26,8 @@ int main(int argc, char** argv)
     toyota.steering_command_ = 200;
 
     // https://github.com/ros/ros_comm/blob/noetic-devel/clients/rospy/src/rospy/timer.py#L47
-    long sleep_duration = 1e9/100; // 1e9/100Hz 
+    // long sleep_duration = 2e4/100; // 1e9/100Hz 
+    long sleep_duration = 100000000.0/100;
 
     while (true)
     {
@@ -52,15 +53,34 @@ int main(int argc, char** argv)
         frame_id++;
         tareeq::can::can_message gas_cmd      = toyota.create_gas_command(0.5, frame_id);
 
+        frame_id++;
         tareeq::can::can_message pcm_msg      = toyota.create_pcm_cruise_msg();
+
+        frame_id++;
         tareeq::can::can_message pcm2_msg     = toyota.create_pcm_cruise_2_msg();
+
+        frame_id++;
         tareeq::can::can_message whl_msg      = toyota.create_wheel_speeds_msg();
+
+        frame_id++;
         tareeq::can::can_message esp_msg      = toyota.create_esp_control_msg();
+
+        frame_id++;
         tareeq::can::can_message doors_msg    = toyota.create_seats_doors_msg();
+
+        frame_id++;
         tareeq::can::can_message gear_msg     = toyota.create_gear_packet_msg();
+
+        frame_id++;
         tareeq::can::can_message gas_msg      = toyota.create_gas_pedal_msg();
+
+        frame_id++;
         tareeq::can::can_message brake_msg    = toyota.create_brake_module_msg();
+
+        frame_id++;
         tareeq::can::can_message eps_msg      = toyota.create_eps_status_msg();
+
+        frame_id++;
         tareeq::can::can_message steer_msg    = toyota.steer_torque_sensor_msg();
 
         res = writer->send(pcm_msg);
