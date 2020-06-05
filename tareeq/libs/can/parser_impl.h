@@ -34,7 +34,7 @@ class CANParserImpl : public CANParser, public CANBase
 
       std::string binary = get_binary_string(can_msg);
       Msg msg = message_lookup[can_msg.address];
-      std::cout << "message has address " << msg.address << std::endl;
+      // std::cout << "message has address " << msg.address << std::endl;
       for (size_t i=0; i<msg.num_sigs; i++) {
         Signal sig = msg.sigs[i];
         std::string value_str = binary.substr(sig.b1, sig.b2);
