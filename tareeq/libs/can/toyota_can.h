@@ -41,7 +41,8 @@ public:
 
     ToyotaCAN(std::unique_ptr<CANPacker>&& packer) : packer_(std::move(packer)){};
 
-    double steering_command_ = 0;
+    double new_steering_command_ = 0;
+    double prev_steering_command_ = 0;
     
     can_message create_accel_command(
         double accel_value, 
@@ -177,18 +178,19 @@ public:
 
     can_message apply_steering_command(uint32_t counter)
     {
-        int32_t new_steering_command = int(std::round(steering_command_+1.0) * LIMITS.STEER_MAX);
-        steering_command_ = apply_steering_torque_limits(
-            new_steering_command,
-            steering_command_,
-            0 // TO-DO: create a variable for this
-        );
-        if (steering_command_ == LIMITS.STEER_MAX && counter % 200 == 0)
-        {
-            steering_command_ = 0;
-        }
+        // int32_t new_steering_command = int(std::round(steering_command_+1.0) * LIMITS.STEER_MAX);
+        // new_steering_command_ = apply_steering_torque_limits(
+        //     new_steering_command_,
+        //     prev_steering_command_,
+        //     500 // TO-DO: create a variable for this
+        // );
+        // if (new_steering_command_ == LIMITS.STEER_MAX)
+        // {
+        //     new_steering_command_ = 0;
+        // }
 
-        return create_steering_command(steering_command_, 1, counter);
+        prev_steering_command_ = new_steering_command_;
+        return create_steering_command(new_steering_command_, 1, counter);
     }
     
     can_message create_pcm_cruise_msg()
@@ -225,10 +227,10 @@ public:
         std::string name("WHEEL_SPEEDS");
 
         std::map<std::string, double> values = {
-            {"WHEEL_SPEED_FR", 47.0},
-            {"WHEEL_SPEED_FL" , 47.0},
-            {"WHEEL_SPEED_RR" , 47.0},
-            {"WHEEL_SPEED_RL" , 47.0}
+            {"WHEEL_SPEED_FR", 47},
+            {"WHEEL_SPEED_FL" , 47},
+            {"WHEEL_SPEED_RR" , 47},
+            {"WHEEL_SPEED_RL" , 47}
         };
 
         return packer_->make_can_msg(name, values, -1);
@@ -316,10 +318,10 @@ public:
         std::string name("STEER_TORQUE_SENSOR");
 
         std::map<std::string, double> values = {
-            {"STEER_TORQUE_EPS", 100},
-            {"STEER_TORQUE_DRIVER" , 100},
-            {"STEER_OVERRIDE", 1},
-            {"STEER_ANGLE", 5}
+            {"STEER_TORQUE_EPS", 1000},
+            {"STEER_TORQUE_DRIVER" , 1000},
+            {"STEER_OVERRIDE", 1.0},
+            {"STEER_ANGLE", 0.5}
 
         };
 

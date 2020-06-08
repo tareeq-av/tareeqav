@@ -23,11 +23,12 @@ int main(int argc, char** argv)
     tareeq::can::ToyotaCAN toyota(std::move(packer));
 
     bool res;
-    toyota.steering_command_ = 200;
+    int steer_adjust = 0;
+    toyota.new_steering_command_ = 200;
 
     // https://github.com/ros/ros_comm/blob/noetic-devel/clients/rospy/src/rospy/timer.py#L47
     // long sleep_duration = 2e4/100; // 1e9/100Hz 
-    long sleep_duration = 100000000.0/100;
+    long sleep_duration = 1000000000.0/100;
 
     while (true)
     {
@@ -35,13 +36,14 @@ int main(int argc, char** argv)
         auto start_time = s.time_since_epoch();
 
         frame_id++;
+        steer_adjust++;
         
-        if (frame_id % 900 == 0)
+        if (steer_adjust % 100 == 0)
         {
-            if (toyota.steering_command_ >= 1000)
-                {toyota.steering_command_ -= 25;}
+            if (toyota.new_steering_command_ >= 1200)
+                {toyota.new_steering_command_ = 0;}
             else
-            {toyota.steering_command_ += 25;}
+            {toyota.new_steering_command_ += 75;}
         }
 
         frame_id++;
@@ -77,11 +79,11 @@ int main(int argc, char** argv)
         frame_id++;
         tareeq::can::can_message brake_msg    = toyota.create_brake_module_msg();
 
-        frame_id++;
-        tareeq::can::can_message eps_msg      = toyota.create_eps_status_msg();
+        // frame_id++;
+        // tareeq::can::can_message eps_msg      = toyota.create_eps_status_msg();
 
-        frame_id++;
-        tareeq::can::can_message steer_msg    = toyota.steer_torque_sensor_msg();
+        // frame_id++;
+        // tareeq::can::can_message steer_msg    = toyota.steer_torque_sensor_msg();
 
         res = writer->send(pcm_msg);
         res = writer->send(pcm2_msg);
@@ -91,8 +93,8 @@ int main(int argc, char** argv)
         res = writer->send(gear_msg);
         res = writer->send(gas_msg);
         res = writer->send(brake_msg);
-        res = writer->send(eps_msg);
-        res = writer->send(steer_msg);
+        // res = writer->send(eps_msg);
+        // res = writer->send(steer_msg);
         res = writer->send(steering_cmd);    
         res = writer->send(accel_cmd);
         res = writer->send(gas_cmd);
