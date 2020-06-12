@@ -22,7 +22,7 @@ cc_binary(
 cc_binary(
     name = "can_sender",
     srcs = [
-      "can_sender.cc"
+      "can_torque_cmd.cc"
     ],
     deps = [   
       ":can",

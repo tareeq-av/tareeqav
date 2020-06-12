@@ -36,9 +36,19 @@ class CANParserImpl : public CANParser, public CANBase
       Msg msg = message_lookup[can_msg.address];
       // std::cout << "message has address " << msg.address << std::endl;
       for (size_t i=0; i<msg.num_sigs; i++) {
+        int64_t tmp;
         Signal sig = msg.sigs[i];
+
         std::string value_str = binary.substr(sig.b1, sig.b2);
-        values[sig.name] = std::stoi(value_str, nullptr, 2);
+        
+        tmp = std::stoi(value_str, nullptr, 2);
+        if (sig.is_signed)
+        {
+          tmp -= (tmp >> (sig.b2-1)) ? (1ULL << sig.b2) : 0; //signed
+        }
+        
+        // values[sig.name] = std::stoi(value_str, nullptr, 2);
+        values[sig.name] = tmp * sig.factor + sig.offset;
       }
 
       return values;

@@ -2,6 +2,7 @@
 #include <chrono>
 #include <thread>
 #include <fstream>
+#include <string>
 
 #include "packer.h"
 #include "parser.h"
@@ -10,9 +11,32 @@
 #include "can_message.h"
 #include "toyota_corolla_2017.h"
 
+void inline write_msg(
+    std::ofstream &can_log_f_,
+    tareeq::can::can_message &msg,
+    std::unique_ptr<tareeq::can::CANParser> &parser
+    )
+{
+    std::map<std::string, double> values = parser->parse(msg);
+    can_log_f_ << msg.address << "," << msg.size << std::endl;
+    for (const auto& kv : values)
+    {
+        can_log_f_ << kv.first << "," << kv.second << std::endl;
+    }
+    can_log_f_ << "--------------------" << "," << "--------------------" << std::endl;
+}
 
 int main(int argc, char** argv)
 {
+    std::vector<int> addresses;
+
+    if (argc > 1)
+    {
+        for (int i=1; i < argc; i++)
+        {
+            addresses.push_back(std::atoi(argv[i]));
+        }
+    }
 
     std::cout << "starting log file /home/pi/tareeqav/tareeq/libs/can/can_log.csv" << std::endl;
     std::ofstream can_log_f_;
@@ -29,26 +53,15 @@ int main(int argc, char** argv)
     while (true)
     {
         tareeq::can::can_message msg = reader->receive();
-        std::map<std::string, double> values = parser->parse(msg);
-
-        can_log_f_ << msg.address << "," << msg.size << std::endl;
-        for (const auto& kv : values)
-        {
-            can_log_f_ << kv.first << "," << kv.second << std::endl;
-        }
         
-        if (msg.address == 610)
+        if (addresses.empty())
         {
-            // std::string binary = parser->get_binary_string(msg);
-            // can_log_f_ << binary << "," << " " << std::endl;
-            for (size_t i =0; i < msg.size; i++)
-            {
-                can_log_f_ << +msg.data[i];
-            }
-            can_log_f_ << "," << " " << std::endl;
-
+            write_msg(can_log_f_, msg, parser);
         }
-        can_log_f_ << "--------------------" << "," << "--------------------" << std::endl;
+        else if (std::find(addresses.begin(), addresses.end(), msg.address) != addresses.end())
+        {
+            write_msg(can_log_f_, msg, parser);
+        }
     }
 
     return 0;

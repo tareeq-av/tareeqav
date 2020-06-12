@@ -188,8 +188,8 @@ public:
         // {
         //     new_steering_command_ = 0;
         // }
-
-        prev_steering_command_ = new_steering_command_;
+        // prev_steering_command_ = new_steering_command_;
+        
         return create_steering_command(new_steering_command_, 1, counter);
     }
     

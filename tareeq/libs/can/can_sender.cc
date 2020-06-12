@@ -49,35 +49,35 @@ int main(int argc, char** argv)
         frame_id++;
         tareeq::can::can_message steering_cmd = toyota.apply_steering_command(frame_id);
         
-        frame_id++;
-        tareeq::can::can_message accel_cmd    = toyota.apply_accel_command(frame_id);
+        // frame_id++;
+        // tareeq::can::can_message accel_cmd    = toyota.apply_accel_command(frame_id);
         
-        frame_id++;
-        tareeq::can::can_message gas_cmd      = toyota.create_gas_command(0.5, frame_id);
+        // frame_id++;
+        // tareeq::can::can_message gas_cmd      = toyota.create_gas_command(0.5, frame_id);
 
-        frame_id++;
-        tareeq::can::can_message pcm_msg      = toyota.create_pcm_cruise_msg();
+        // frame_id++;
+        // tareeq::can::can_message pcm_msg      = toyota.create_pcm_cruise_msg();
 
-        frame_id++;
-        tareeq::can::can_message pcm2_msg     = toyota.create_pcm_cruise_2_msg();
+        // frame_id++;
+        // tareeq::can::can_message pcm2_msg     = toyota.create_pcm_cruise_2_msg();
 
-        frame_id++;
-        tareeq::can::can_message whl_msg      = toyota.create_wheel_speeds_msg();
+        // frame_id++;
+        // tareeq::can::can_message whl_msg      = toyota.create_wheel_speeds_msg();
 
-        frame_id++;
-        tareeq::can::can_message esp_msg      = toyota.create_esp_control_msg();
+        // frame_id++;
+        // tareeq::can::can_message esp_msg      = toyota.create_esp_control_msg();
 
-        frame_id++;
-        tareeq::can::can_message doors_msg    = toyota.create_seats_doors_msg();
+        // frame_id++;
+        // tareeq::can::can_message doors_msg    = toyota.create_seats_doors_msg();
 
-        frame_id++;
-        tareeq::can::can_message gear_msg     = toyota.create_gear_packet_msg();
+        // frame_id++;
+        // tareeq::can::can_message gear_msg     = toyota.create_gear_packet_msg();
 
-        frame_id++;
-        tareeq::can::can_message gas_msg      = toyota.create_gas_pedal_msg();
+        // frame_id++;
+        // tareeq::can::can_message gas_msg      = toyota.create_gas_pedal_msg();
 
-        frame_id++;
-        tareeq::can::can_message brake_msg    = toyota.create_brake_module_msg();
+        // frame_id++;
+        // tareeq::can::can_message brake_msg    = toyota.create_brake_module_msg();
 
         // frame_id++;
         // tareeq::can::can_message eps_msg      = toyota.create_eps_status_msg();
@@ -85,19 +85,19 @@ int main(int argc, char** argv)
         // frame_id++;
         // tareeq::can::can_message steer_msg    = toyota.steer_torque_sensor_msg();
 
-        res = writer->send(pcm_msg);
-        res = writer->send(pcm2_msg);
-        res = writer->send(whl_msg);
-        res = writer->send(esp_msg);
-        res = writer->send(doors_msg);
-        res = writer->send(gear_msg);
-        res = writer->send(gas_msg);
-        res = writer->send(brake_msg);
+        // res = writer->send(pcm_msg);
+        // res = writer->send(pcm2_msg);
+        // res = writer->send(whl_msg);
+        // res = writer->send(esp_msg);
+        // res = writer->send(doors_msg);
+        // res = writer->send(gear_msg);
+        // res = writer->send(gas_msg);
+        // res = writer->send(brake_msg);
         // res = writer->send(eps_msg);
         // res = writer->send(steer_msg);
         res = writer->send(steering_cmd);    
-        res = writer->send(accel_cmd);
-        res = writer->send(gas_cmd);
+        // res = writer->send(accel_cmd);
+        // res = writer->send(gas_cmd);
 
         if (!res)
         {
